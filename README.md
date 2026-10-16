@@ -231,7 +231,7 @@ Then configure the following variables:
 VITE_API_URL=http://localhost:3001
 
 # For local development with production backend
-# VITE_API_URL=https://imsop-app-backend.onrender.com
+# VITE_API_URL=https://imsop-api.152-70-22-84.sslip.io
 
 # Google Maps API (Optional - for map visualization)
 # Get your API key from: https://console.cloud.google.com/google/maps-apis
@@ -265,7 +265,7 @@ LOG_LEVEL=debug
 
 **Important Notes:**
 - The frontend uses `VITE_API_URL` to connect to the backend API
-- In production (Vercel), the API URL is `https://imsop-app-backend.onrender.com`
+- In production (Vercel), requests use the same-origin `/api` proxy to Oracle
 - The Google Maps API key is optional. If not configured, the map component will display a placeholder message
 
 ### Available Scripts
@@ -323,22 +323,22 @@ The application uses a distributed deployment model:
 **Frontend (GitHub Pages)**
 - Automatically deployed on push to `main` branch
 - Static React app served from `https://druhustle.github.io/imsop-app-frontend/`
-- Configured to connect to Render backend API
+- Configured to connect to the Oracle backend API
 
-**Backend (Render)**
-- Containerized backend gateway hosted at `https://imsop-app-backend.onrender.com`
+**Backend (Oracle)**
+- Containerized backend gateway hosted at `https://imsop-api.152-70-22-84.sslip.io`
 - Handles authentication, data management, and business logic
 - Connected to Aiven MySQL database
 
 **Database (Aiven)**
 - MySQL database hosted on Aiven cloud
-- Secure connection from Render backend
+- Secure connection from the Oracle backend
 - Managed backups and scaling
 
 **Development:**
 - Local Node.js server with local MySQL database
 - Run `./deploy.sh` for automated setup
-- See `RENDER_DEPLOYMENT.md` for detailed deployment instructions
+- See [Oracle backend operations](../imsop-app-backend/deploy/oracle/README.md) for deployment instructions
 
 ### Next Steps
 
@@ -476,3 +476,9 @@ GitHub Pages builds use the same origin through `VITE_API_URL`. Local API
 overrides remain supported. The backend retains its existing managed PostgreSQL
 data and authentication controls. Its repository documents the independent
 Oracle deployment and rollback procedure.
+
+Vercel builds pin the Oracle API origin and `/` base path in `vercel.json`,
+overriding stale dashboard settings. Authentication, Operations and shared API
+clients use one origin resolver: same-origin on Vercel, Oracle on GitHub Pages,
+and configurable local development. Every build checks all JavaScript chunks
+for retired backend URLs. Run `pnpm verify:deployment` to repeat that check.

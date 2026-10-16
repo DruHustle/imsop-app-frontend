@@ -1,13 +1,10 @@
+import { API_ORIGIN } from './api-origin';
 import { safeLocalStorage, safeSessionStorage } from './storage';
 import { User, AuthResponse, IAuthService } from './auth-types';
 
 const TOKEN_KEY = 'imsop_token', USER_KEY = 'imsop_user';
-export function resolveAuthOrigin(configured: string | undefined, production: boolean, basePath: string): string {
-  // Root-hosted production uses Vercel's proxy to keep authentication cookies first-party.
-  if (production && basePath === '/') return '';
-  return configured?.trim().replace(/\/+$/, '') || 'http://localhost:3001';
-}
-const API_BASE = resolveAuthOrigin(import.meta.env.VITE_API_URL, import.meta.env.PROD, import.meta.env.BASE_URL);
+export { resolveApiOrigin as resolveAuthOrigin } from './api-origin';
+const API_BASE = API_ORIGIN;
 const getStorage = () => safeLocalStorage.getItem('__storage_test__') === null && !window.localStorage ? safeSessionStorage : safeLocalStorage;
 
 export class ApiAuthService implements IAuthService {
