@@ -467,3 +467,12 @@ For support, email andrewgotora@yahoo.com or open an issue on GitHub.
 - Built with React, Node.js, and TypeScript
 - UI components from Radix UI and shadcn/ui
 - Inspired by modern supply chain management practices
+
+## Production backend hosting
+
+The API runs on the shared Oracle VM **Software Engineering Backend** at
+`https://imsop-api.152-70-22-84.sslip.io`. Vercel proxies `/api/*` there and
+GitHub Pages builds use the same origin through `VITE_API_URL`. Local API
+overrides remain supported. The backend retains its existing managed PostgreSQL
+data and authentication controls. Its repository documents the independent
+Oracle deployment and rollback procedure.

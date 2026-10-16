@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://imsop-app-backend.onrender.com/api/:path*"
+      "destination": "https://imsop-api.152-70-22-84.sslip.io/api/:path*"
     },
     {
       "source": "/imsop-app-frontend/assets/(.*)",
