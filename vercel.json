@@ -53,5 +53,6 @@
         }
       ]
     }
-  ]
+  ],
+  "buildCommand": "VITE_API_URL=https://imsop-api.152-70-22-84.sslip.io VITE_BASE_PATH=/ pnpm build"
 }

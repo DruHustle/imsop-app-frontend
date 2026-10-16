@@ -32,6 +32,7 @@ import { toast } from "sonner";
 import { exportShipmentsToCSV, exportShipmentsToPDF, type ShipmentData } from "@/lib/export";
 import { useEffect, useMemo, useState } from "react";
 import { safeLocalStorage } from "@/lib/storage";
+import { API_ORIGIN } from "@/lib/api-origin";
 import { MapView } from "@/components/Map";
 
 type LogisticsShipment = ShipmentData & { type: string; latitude?: number; longitude?: number };
@@ -134,8 +135,7 @@ export default function Operations() {
   useEffect(() => {
     const token = safeLocalStorage.getItem('imsop_token');
     if (token?.startsWith('mock_')) return;
-    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/$/, '');
-    fetch(`${baseUrl}/api/operations/shipments`, { credentials: 'include' })
+    fetch(`${API_ORIGIN}/api/operations/shipments`, { credentials: 'include' })
       .then(async response => {
         if (!response.ok) throw new Error(`API returned ${response.status}`);
         return response.json();

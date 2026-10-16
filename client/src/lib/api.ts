@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { safeLocalStorage } from './storage';
+import { API_ORIGIN } from './api-origin';
 
 // Standardized API Response format
 export interface ApiResponse<T = any> {
@@ -12,9 +13,10 @@ export interface ApiResponse<T = any> {
 class ApiClient {
   private client: AxiosInstance;
 
-  constructor(baseURL: string = '/api') {
+  constructor(baseURL: string = `${API_ORIGIN}/api`) {
     this.client = axios.create({
       baseURL,
+      withCredentials: true,
       headers: {
         'Content-Type': 'application/json',
       },

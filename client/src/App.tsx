@@ -25,9 +25,6 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Forbidden = lazy(() => import('./pages/Forbidden'));
 
 
-// LOG TO VERIFY YOUR CONFIGURATION
-console.log("Connecting to backend at:", import.meta.env.VITE_API_URL);
-
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const canAccess = (roles: string[]) => Boolean(user && roles.includes(user.role));
