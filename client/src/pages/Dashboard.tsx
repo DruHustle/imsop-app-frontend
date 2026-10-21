@@ -1,5 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { useState } from "react";
+import { safeLocalStorage } from "@/lib/storage";
 import { 
   Activity, 
   AlertTriangle, 
@@ -13,7 +16,7 @@ import {
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 import { MapView } from "@/components/Map";
 
-const data = [
+const demoThroughput = [
   { name: "00:00", value: 400 },
   { name: "04:00", value: 300 },
   { name: "08:00", value: 550 },
@@ -33,16 +36,25 @@ const StatCard = ({ title, value, change, icon: Icon, trend }: any) => (
     </CardHeader>
     <CardContent>
       <div className="text-2xl font-bold tracking-tight">{value}</div>
-      <p className={`text-[10px] font-bold flex items-center mt-1 ${trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
+      {change ? <p className={`text-[10px] font-bold flex items-center mt-1 ${trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
         {trend === 'up' ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
         {change}
         <span className="text-muted-foreground ml-1 font-normal">vs last hour</span>
-      </p>
+      </p> : <p className="text-[10px] text-muted-foreground mt-1">No live data connected</p>}
     </CardContent>
   </Card>
 );
 
 export default function Dashboard() {
+  const [demoDataEnabled, setDemoDataEnabled] = useState(
+    () => safeLocalStorage.getItem("imsop_dashboard_demo_data") === "true"
+  );
+
+  const toggleDemoData = (enabled: boolean) => {
+    setDemoDataEnabled(enabled);
+    safeLocalStorage.setItem("imsop_dashboard_demo_data", String(enabled));
+  };
+
   return (
     <div className="space-y-6 p-4 md:p-0"> 
       {/* Condensed Header */}
@@ -53,18 +65,28 @@ export default function Dashboard() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Real-time supply chain monitoring and predictive insights.</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold animate-pulse">
-          <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
-          LIVE DATA STREAM
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 rounded-md border border-white/10 bg-background/70 px-3 py-2 text-sm">
+            <Switch
+              aria-label="Show demo data"
+              checked={demoDataEnabled}
+              onCheckedChange={toggleDemoData}
+            />
+            <span>Demo Data</span>
+          </label>
+          <div role="status" className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-bold ${demoDataEnabled ? "bg-primary/10 border-primary/20 text-primary" : "bg-white/5 border-white/10 text-muted-foreground"}`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${demoDataEnabled ? "bg-primary" : "bg-muted-foreground"}`} />
+            {demoDataEnabled ? "DEMO DATA" : "NO LIVE DATA CONNECTED"}
+          </div>
         </div>
       </div>
 
       {/* Key Metrics Grid */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Active Shipments" value="1,284" change="+12.5%" trend="up" icon={Box} />
-        <StatCard title="On-Time Delivery" value="98.2%" change="+2.1%" trend="up" icon={Clock} />
-        <StatCard title="Predicted Delays" value="14" change="-4" trend="down" icon={AlertTriangle} />
-        <StatCard title="System Load" value="42%" change="+5%" trend="up" icon={Activity} />
+        <StatCard title="Active Shipments" value={demoDataEnabled ? "1,284" : "—"} change={demoDataEnabled ? "+12.5%" : undefined} trend="up" icon={Box} />
+        <StatCard title="On-Time Delivery" value={demoDataEnabled ? "98.2%" : "—"} change={demoDataEnabled ? "+2.1%" : undefined} trend="up" icon={Clock} />
+        <StatCard title="Predicted Delays" value={demoDataEnabled ? "14" : "—"} change={demoDataEnabled ? "-4" : undefined} trend="down" icon={AlertTriangle} />
+        <StatCard title="System Load" value={demoDataEnabled ? "42%" : "—"} change={demoDataEnabled ? "+5%" : undefined} trend="up" icon={Activity} />
       </div>
 
       <div className="grid gap-4 grid-cols-1 md:grid-cols-7">
@@ -75,8 +97,9 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="pl-0 md:pl-2">
             <div className="h-[250px] w-full">
+              {demoDataEnabled ? (
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data}>
+                <AreaChart data={demoThroughput}>
                   <defs>
                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
@@ -93,6 +116,11 @@ export default function Dashboard() {
                   <Area type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
                 </AreaChart>
               </ResponsiveContainer>
+              ) : (
+                <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
+                  No throughput data available. Enable Demo Data to preview analytics.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -107,7 +135,7 @@ export default function Dashboard() {
             <MapView className="absolute inset-0 w-full h-full" onMapReady={() => {}} />
             
             {/* Overlay notification */}
-            <div className="absolute bottom-3 inset-x-3 pointer-events-none">
+            {demoDataEnabled && <div className="absolute bottom-3 inset-x-3 pointer-events-none">
               <div className="glass-panel p-2 rounded-lg flex items-center gap-3 animate-in slide-in-from-bottom-2 fade-in duration-500 pointer-events-auto">
                 <div className="shrink-0 w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
                 <div className="flex-1 min-w-0">
@@ -116,7 +144,7 @@ export default function Dashboard() {
                 </div>
                 <Button size="sm" variant="outline" className="shrink-0 h-6 text-[10px] border-white/20 hover:bg-white/10 px-2">View</Button>
               </div>
-            </div>
+            </div>}
           </CardContent>
         </Card>
       </div>
@@ -133,7 +161,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {[1, 2].map((i) => (
+              {demoDataEnabled ? [1, 2].map((i) => (
                 <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
                   <div className="w-7 h-7 rounded bg-purple-500/20 flex items-center justify-center shrink-0 text-purple-400">
                     <TrendingUp className="w-3 h-3" />
@@ -146,7 +174,9 @@ export default function Dashboard() {
                   </div>
                   <div className="text-[10px] font-bold text-primary shrink-0">98% CONF.</div>
                 </div>
-              ))}
+              )) : (
+                <p className="py-6 text-center text-sm text-muted-foreground">No predictive insights available.</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -157,7 +187,7 @@ export default function Dashboard() {
             <CardTitle className="text-sm font-bold uppercase tracking-wider text-white">Ask IMSOP AI</CardTitle>
           </CardHeader>
           <CardContent className="relative z-10 flex flex-col h-[120px] justify-end">
-            <p className="text-[10px] text-white/80 mb-3 italic">"What is the status of shipment #12345?"</p>
+            <p className="text-[10px] text-white/80 mb-3 italic">{demoDataEnabled ? '"What is the status of shipment #12345?"' : "Ask about your supply chain."}</p>
             <div className="relative">
               <input type="text" placeholder="Query..." className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-primary/50 backdrop-blur-sm" />
               <Button size="icon" className="absolute right-1 top-1 h-5 w-5 bg-primary hover:bg-primary/80 text-primary-foreground">
