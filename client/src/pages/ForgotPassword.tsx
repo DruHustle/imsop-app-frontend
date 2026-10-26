@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrainCircuit, Mail, ArrowLeft, CheckCircle } from "lucide-react";
@@ -30,7 +36,10 @@ export default function ForgotPassword() {
             duration: 10000,
           });
           // Auto-navigate to reset page with token for demo
-          setTimeout(() => navigate(`/reset-password?token=${result.token}`), 2000);
+          setTimeout(
+            () => navigate(`/reset-password?token=${result.token}`),
+            2000
+          );
         }
       } else {
         toast.error(result.error || "Failed to send reset email");
@@ -44,26 +53,27 @@ export default function ForgotPassword() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[url('/images/hero-bg.jpg')] bg-cover bg-center relative">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-        
-        <Card className="w-full max-w-md glass-panel border-white/10 relative z-10 animate-in fade-in zoom-in duration-500">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+        <Card className="w-full max-w-md glass-panel border-border relative z-10 animate-in fade-in zoom-in duration-500">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
                 <CheckCircle className="w-7 h-7 text-green-500" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-display font-bold tracking-wide">Check Your Email</CardTitle>
+            <h1 className="text-2xl font-display font-bold tracking-wide">
+              Check Your Email
+            </h1>
             <CardDescription className="text-muted-foreground">
-              If an account exists for {email}, you will receive a password reset link shortly.
+              If an account exists for {email}, you will receive a password
+              reset link shortly.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-center text-muted-foreground">
               Demo Mode: Redirecting to reset page...
             </p>
-            <Button 
+            <Button
               variant="outline"
               onClick={() => navigate("/")}
               className="w-full"
@@ -78,17 +88,17 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[url('/images/hero-bg.jpg')] bg-cover bg-center relative">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      
-      <Card className="w-full max-w-md glass-panel border-white/10 relative z-10 animate-in fade-in zoom-in duration-500">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      <Card className="w-full max-w-md glass-panel border-border relative z-10 animate-in fade-in zoom-in duration-500">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded bg-primary flex items-center justify-center shadow-[0_0_20px_var(--primary)]">
+            <div className="w-12 h-12 rounded bg-primary flex items-center justify-center ">
               <BrainCircuit className="w-7 h-7 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-display font-bold tracking-wide">Forgot Password</CardTitle>
+          <h1 className="text-2xl font-display font-bold tracking-wide">
+            Forgot Password
+          </h1>
           <CardDescription className="text-muted-foreground">
             Enter your email address and we'll send you a reset link
           </CardDescription>
@@ -104,23 +114,23 @@ export default function ForgotPassword() {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 bg-background/50 border-white/20"
+                  onChange={e => setEmail(e.target.value)}
+                  className="pl-10 bg-background/50 border-border"
                   required
                 />
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary hover:bg-primary/80 text-primary-foreground shadow-[0_0_15px_var(--primary)]"
+              className="w-full bg-primary hover:bg-primary/80 text-primary-foreground "
             >
               {isLoading ? "Sending..." : "Send Reset Link"}
             </Button>
           </form>
-          
-          <Button 
+
+          <Button
             variant="ghost"
             onClick={() => navigate("/")}
             className="w-full"

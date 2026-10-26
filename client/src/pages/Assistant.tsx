@@ -1,152 +1,193 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "wouter";
+import { useData } from "@/contexts/DataContext";
+import { PageHeader, Panel, SourceNote } from "@/components/Workspace";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
-import { Send, Bot, User, Sparkles, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: Date;
-}
-
+import { answerQuestion, Answer } from "@/lib/assistant";
+import { useHashQuery } from "@/lib/hash-location";
 export default function Assistant() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "assistant",
-      content: "Hello! I'm IMSOP AI. I can help you track shipments, analyze operational data, or predict potential disruptions. How can I assist you today?",
-      timestamp: new Date()
-    }
-  ]);
-  const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  const handleSend = async () => {
-    if (!input.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInput("");
-    setIsTyping(true);
-
-    // Simulate AI response delay
-    setTimeout(() => {
-      const responses = [
-        "I've analyzed the latest telemetry data. Shipment #SHP-8829 is currently on schedule and expected to arrive in New York by 14:00 EST.",
-        "Based on current weather patterns in the North Atlantic, I predict a 4-hour delay for sea freight routes from Hamburg. I recommend notifying the receiving warehouse.",
-        "I've detected a potential bottleneck in the Singapore distribution center. Throughput has dropped by 15% in the last hour.",
-        "The demand forecast for Q4 shows a 20% increase in electronics. We should consider increasing inventory levels in the West Coast distribution centers."
-      ];
-      
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: randomResponse,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-      setIsTyping(false);
-    }, 1500);
+  const { mode } = useData();
+  return <Session key={mode} />;
+}
+function Session() {
+  const { mode, shipments, orders, refresh } = useData();
+  const params = useHashQuery();
+  const incoming = params.get("q") ?? "";
+  const [query, setQuery] = useState(incoming);
+  const [messages, setMessages] = useState<
+    { question: string; answer: Answer }[]
+  >([]);
+  const [sending, setSending] = useState(false);
+  const [notice, setNotice] = useState("");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const last = useRef("");
+  useEffect(() => {
+    setQuery(incoming);
+  }, [incoming]);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    []
+  );
+  const send = (q = query) => {
+    if (!q.trim() || sending) return;
+    last.current = q;
+    setSending(true);
+    setNotice("");
+    setQuery("");
+    timer.current = setTimeout(() => {
+      setMessages(m => [
+        ...m,
+        { question: q, answer: answerQuestion(q, shipments, orders, mode) },
+      ]);
+      setSending(false);
+      timer.current = null;
+    }, 180);
   };
-
+  const unavailable =
+    shipments.status === "unavailable" || orders.status === "unavailable";
   return (
-    <div className="h-[calc(100vh-8rem)] flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-display text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">
-            AI Assistant
-          </h1>
-          <p className="text-muted-foreground">Conversational interface for operational intelligence.</p>
+    <>
+      <PageHeader
+        eyebrow="Insights / authorized context"
+        title="Assistant"
+        description="A deterministic data assistant for shipment and operational order lookups. No model provider is configured; answers do not perform actions."
+      />
+      <SourceNote />
+      {params.get("item") && (
+        <p className="muted text-xs">
+          Requested context: {params.get("item")}. Review the query and send
+          once. Context must be present in your authorized dataset.
+        </p>
+      )}
+      {unavailable && (
+        <div className="source-note" role="alert">
+          A source is unavailable.{" "}
+          <Button size="sm" variant="outline" onClick={refresh}>
+            Retry source read
+          </Button>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-medium">
-          <Sparkles className="w-4 h-4" />
-          IMSOP LLM v2.0 Active
+      )}
+      <Panel
+        title="Ask about the selected dataset"
+        description="Use a known tracking/order number, ask for a shipment summary, or review exceptions."
+      >
+        <div
+          className="chat-history"
+          role="log"
+          aria-live="polite"
+          aria-label="Assistant conversation"
+        >
+          {!messages.length && (
+            <div className="empty-state">
+              <h2>Start with a record or a question</h2>
+              <p className="muted">
+                Responses cite the selected source, record and observation time
+                when supplied. Queries stay in this session.
+              </p>
+              <div className="suggestion-list">
+                {[
+                  "Summarize shipments",
+                  "Which shipments need attention?",
+                  ...(shipments.items[0]
+                    ? [`Look up ${shipments.items[0].trackingNumber}`]
+                    : []),
+                ].map(q => (
+                  <Button
+                    key={q}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuery(q)}
+                  >
+                    {q}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+          {messages.map((m, i) => (
+            <div key={i} className="space-y-3">
+              <div className="chat-message user">
+                <p className="eyebrow">You</p>
+                <p>{m.question}</p>
+              </div>
+              <div className="chat-message">
+                <p className="eyebrow">
+                  {mode === "demo" ? "Demo data assistant" : "Data assistant"}
+                </p>
+                <p>{m.answer.text}</p>
+                {m.answer.links.map(l => (
+                  <Link key={l.href} href={l.href}>
+                    {l.label} ↗
+                  </Link>
+                ))}
+                <span className="freshness">{m.answer.source}</span>
+              </div>
+            </div>
+          ))}
+          {sending && (
+            <p role="status" className="muted text-xs">
+              Reading selected context…
+            </p>
+          )}
         </div>
-      </div>
-
-      <Card className="flex-1 glass border-white/5 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4 max-w-3xl mx-auto">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  "flex gap-3",
-                  message.role === "user" ? "flex-row-reverse" : "flex-row"
-                )}
-              >
-                <Avatar className={cn(
-                  "w-8 h-8 border border-white/10",
-                  message.role === "assistant" ? "bg-primary/20" : "bg-white/10"
-                )}>
-                  {message.role === "assistant" ? (
-                    <Bot className="w-5 h-5 text-primary" />
-                  ) : (
-                    <User className="w-5 h-5 text-white" />
-                  )}
-                </Avatar>
-                <div className={cn(
-                  "rounded-2xl px-4 py-3 max-w-[80%] text-sm",
-                  message.role === "user" 
-                    ? "bg-primary text-primary-foreground rounded-tr-none" 
-                    : "bg-white/5 border border-white/10 text-foreground rounded-tl-none"
-                )}>
-                  {message.content}
-                  <div className="text-[10px] opacity-50 mt-1 text-right">
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-              </div>
-            ))}
-            {isTyping && (
-              <div className="flex gap-3">
-                <Avatar className="w-8 h-8 bg-primary/20 border border-white/10">
-                  <Bot className="w-5 h-5 text-primary" />
-                </Avatar>
-                <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-1">
-                  <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-        
-        <div className="p-4 bg-black/20 border-t border-white/5">
-          <div className="max-w-3xl mx-auto flex gap-2">
-            <Input
-              placeholder="Ask about shipments, delays, or operational insights..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              className="bg-white/5 border-white/10 focus:border-primary/50"
+        <form
+          className="chat-form mt-6"
+          onSubmit={e => {
+            e.preventDefault();
+            send();
+          }}
+        >
+          <label className="field">
+            Your question
+            <textarea
+              placeholder="Ask about shipments or operational orders…"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => {
+                if (
+                  e.key === "Enter" &&
+                  !e.shiftKey &&
+                  !e.nativeEvent.isComposing
+                ) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
+              maxLength={2000}
             />
-            <Button 
-              onClick={handleSend} 
-              disabled={!input.trim() || isTyping}
-              className="bg-primary hover:bg-primary/80 text-primary-foreground shadow-[0_0_15px_var(--primary)]"
+          </label>
+          <Button
+            type="submit"
+            disabled={
+              !query.trim() || sending || shipments.status === "loading"
+            }
+          >
+            Send
+          </Button>
+          {sending && (
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                if (timer.current) clearTimeout(timer.current);
+                timer.current = null;
+                setSending(false);
+                setNotice("Question cancelled.");
+                setQuery(last.current);
+              }}
             >
-              {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              Cancel
             </Button>
-          </div>
-        </div>
-      </Card>
-    </div>
+          )}
+        </form>
+        {notice && (
+          <p role="status" className="muted text-xs mt-3">
+            {notice}
+          </p>
+        )}
+      </Panel>
+    </>
   );
 }

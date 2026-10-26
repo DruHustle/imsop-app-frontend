@@ -1,202 +1,195 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
-import { safeLocalStorage } from "@/lib/storage";
-import { 
-  Activity, 
-  AlertTriangle, 
-  Box, 
-  Clock, 
-  TrendingUp, 
-  ArrowUpRight,
-  ArrowDownRight,
-  BrainCircuit
-} from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
-import { MapView } from "@/components/Map";
-
-const demoThroughput = [
-  { name: "00:00", value: 400 },
-  { name: "04:00", value: 300 },
-  { name: "08:00", value: 550 },
-  { name: "12:00", value: 450 },
-  { name: "16:00", value: 600 },
-  { name: "20:00", value: 750 },
-  { name: "24:00", value: 650 },
-];
-
-const StatCard = ({ title, value, change, icon: Icon, trend }: any) => (
-  <Card className="glass border-white/5 hover:border-primary/50 transition-all duration-300 group">
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors">
-        {title}
-      </CardTitle>
-      <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold tracking-tight">{value}</div>
-      {change ? <p className={`text-[10px] font-bold flex items-center mt-1 ${trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
-        {trend === 'up' ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
-        {change}
-        <span className="text-muted-foreground ml-1 font-normal">vs last hour</span>
-      </p> : <p className="text-[10px] text-muted-foreground mt-1">No live data connected</p>}
-    </CardContent>
-  </Card>
-);
-
+import { Link, useLocation } from "wouter";
+import { AlertTriangle, ArrowUpRight, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useData } from "@/contexts/DataContext";
+import {
+  PageHeader,
+  Panel,
+  Metric,
+  SourceNote,
+  SourceState,
+  StatusBadge,
+  Freshness,
+  EmptyState,
+} from "@/components/Workspace";
+import { isException } from "@/lib/workspace";
+import { useAuth } from "@/contexts/AuthContext";
+import { routes, permitted } from "@/lib/routes";
 export default function Dashboard() {
-  const [demoDataEnabled, setDemoDataEnabled] = useState(
-    () => safeLocalStorage.getItem("imsop_dashboard_demo_data") === "true"
+  const { shipments, orders, refresh } = useData();
+  const { user } = useAuth();
+  const [query, setQuery] = useState("");
+  const [, navigate] = useLocation();
+  const ready = shipments.status === "ready";
+  const attention = shipments.items.filter(isException);
+  const active = shipments.items.filter(
+    s => !["Delivered", "Cancelled"].includes(s.status)
   );
-
-  const toggleDemoData = (enabled: boolean) => {
-    setDemoDataEnabled(enabled);
-    safeLocalStorage.setItem("imsop_dashboard_demo_data", String(enabled));
-  };
-
+  const queryContext = shipments.items.find(s =>
+    query.toLowerCase().includes(s.trackingNumber.toLowerCase())
+  );
   return (
-    <div className="space-y-6 p-4 md:p-0"> 
-      {/* Condensed Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
-            Operational Overview
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">Real-time supply chain monitoring and predictive insights.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-2 rounded-md border border-white/10 bg-background/70 px-3 py-2 text-sm">
-            <Switch
-              aria-label="Show demo data"
-              checked={demoDataEnabled}
-              onCheckedChange={toggleDemoData}
+    <>
+      <PageHeader
+        eyebrow="Your operations workspace"
+        title="Operational overview"
+        description="Start with the work that needs attention. Every total below uses the same authorized record scope."
+        actions={
+          <Button variant="outline" onClick={refresh}>
+            Refresh reads
+          </Button>
+        }
+      />
+      <SourceNote
+        count={
+          shipments.status === "ready" ? shipments.items.length : undefined
+        }
+        total={shipments.total}
+      />
+      <div className="metric-grid">
+        <Metric
+          label="Shipments in scope"
+          value={ready ? shipments.items.length : "—"}
+          description="Newest 500 authorized records"
+          href="/supply-chain/shipments"
+        />
+        <Metric
+          label="Active shipments"
+          value={ready ? active.length : "—"}
+          description="Excludes delivered and cancelled"
+          href="/supply-chain/shipments?status=active"
+        />
+        <Metric
+          label="Needs attention"
+          value={ready ? attention.length : "—"}
+          description="Status is delayed or exception"
+          href="/supply-chain/shipments?status=attention"
+        />
+        <Metric
+          label="Pending orders"
+          value={
+            orders.status === "ready"
+              ? orders.items.filter(o => o.status === "Pending").length
+              : "Unknown"
+          }
+          description={
+            orders.status === "forbidden"
+              ? "Orders unavailable for your role"
+              : "Pending in newest 500 Node orders"
+          }
+          href={
+            orders.status === "ready"
+              ? "/supply-chain/orders?status=Pending"
+              : undefined
+          }
+        />
+      </div>
+      <div className="two-column">
+        <Panel
+          title="Needs attention"
+          description="Recorded shipment exceptions, separate from infrastructure health."
+          actions={
+            <Link
+              href="/supply-chain/shipments?status=attention"
+              className="record-link text-xs"
+            >
+              View all ↗
+            </Link>
+          }
+        >
+          {!ready || !shipments.items.length ? (
+            <SourceState source={shipments} />
+          ) : !attention.length ? (
+            <EmptyState
+              title="No recorded exceptions"
+              description="No delayed or exception statuses in this scope. This does not establish provider connectivity."
             />
-            <span>Demo Data</span>
-          </label>
-          <div role="status" className={`flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-bold ${demoDataEnabled ? "bg-primary/10 border-primary/20 text-primary" : "bg-white/5 border-white/10 text-muted-foreground"}`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${demoDataEnabled ? "bg-primary" : "bg-muted-foreground"}`} />
-            {demoDataEnabled ? "DEMO DATA" : "NO LIVE DATA CONNECTED"}
-          </div>
+          ) : (
+            attention.slice(0, 4).map(s => (
+              <article className="attention-row" key={s.id}>
+                <span className="attention-icon">
+                  <AlertTriangle size={17} />
+                </span>
+                <div>
+                  <Link
+                    className="record-link"
+                    href={`/supply-chain/shipments/${s.id}`}
+                  >
+                    {s.trackingNumber}
+                  </Link>
+                  <p className="muted">
+                    {s.origin} → {s.destination}
+                  </p>
+                  <Freshness shipment={s} />
+                </div>
+                <StatusBadge value={s.status} />
+              </article>
+            ))
+          )}
+        </Panel>
+        <div className="space-y-5">
+          <Panel
+            title="Ask your data assistant"
+            description="Look up records and summarize the selected dataset. No model provider is configured."
+          >
+            <MessageSquare className="text-primary" size={22} />
+            <form
+              className="query-box"
+              onSubmit={e => {
+                e.preventDefault();
+                if (query.trim())
+                  navigate(
+                    `/insights/assistant?q=${encodeURIComponent(query)}${queryContext ? "&item=shipment:" + queryContext.id : ""}`
+                  );
+              }}
+            >
+              <label className="sr-only" htmlFor="overview-query">
+                Ask Assistant
+              </label>
+              <input
+                id="overview-query"
+                className="query-input"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Ask about a tracking number…"
+              />
+              <Button
+                type="submit"
+                aria-label="Open Assistant with query"
+                disabled={!query.trim()}
+              >
+                <ArrowUpRight size={17} />
+              </Button>
+            </form>
+            <p className="muted text-xs mt-3">
+              Your query opens for review before sending.
+            </p>
+          </Panel>
+          <Panel title="Continue your work">
+            {routes
+              .filter(
+                r =>
+                  ["shipments", "orders", "analytics", "health"].includes(
+                    r.id
+                  ) && permitted(r, user)
+              )
+              .map(r => (
+                <Link key={r.id} href={r.href} className="quick-link">
+                  <span className="flex items-center gap-2">
+                    <r.icon size={16} />
+                    {r.label}
+                  </span>
+                  <ArrowUpRight size={14} />
+                </Link>
+              ))}
+          </Panel>
         </div>
       </div>
-
-      {/* Key Metrics Grid */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Active Shipments" value={demoDataEnabled ? "1,284" : "—"} change={demoDataEnabled ? "+12.5%" : undefined} trend="up" icon={Box} />
-        <StatCard title="On-Time Delivery" value={demoDataEnabled ? "98.2%" : "—"} change={demoDataEnabled ? "+2.1%" : undefined} trend="up" icon={Clock} />
-        <StatCard title="Predicted Delays" value={demoDataEnabled ? "14" : "—"} change={demoDataEnabled ? "-4" : undefined} trend="down" icon={AlertTriangle} />
-        <StatCard title="System Load" value={demoDataEnabled ? "42%" : "—"} change={demoDataEnabled ? "+5%" : undefined} trend="up" icon={Activity} />
-      </div>
-
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-7">
-        {/* Main Chart */}
-        <Card className="md:col-span-4 glass border-white/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold uppercase tracking-wider">Throughput Analytics</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-0 md:pl-2">
-            <div className="h-[250px] w-full">
-              {demoDataEnabled ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={demoThroughput}>
-                  <defs>
-                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', backdropFilter: 'blur(10px)' }}
-                    itemStyle={{ color: '#fff', fontSize: '12px' }}
-                  />
-                  <Area type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
-                </AreaChart>
-              </ResponsiveContainer>
-              ) : (
-                <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
-                  No throughput data available. Enable Demo Data to preview analytics.
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Interactive Map */}
-        <Card className="md:col-span-3 glass border-white/5 flex flex-col h-[350px]">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold uppercase tracking-wider">Global Activity Map</CardTitle>
-          </CardHeader>
-          <CardContent className="relative flex-1 p-0 overflow-hidden rounded-b-xl">
-            {/* Using absolute inset to ensure map fills the remaining space of the card */}
-            <MapView className="absolute inset-0 w-full h-full" onMapReady={() => {}} />
-            
-            {/* Overlay notification */}
-            {demoDataEnabled && <div className="absolute bottom-3 inset-x-3 pointer-events-none">
-              <div className="glass-panel p-2 rounded-lg flex items-center gap-3 animate-in slide-in-from-bottom-2 fade-in duration-500 pointer-events-auto">
-                <div className="shrink-0 w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold text-white truncate">Anomaly: Route 42</p>
-                  <p className="text-[8px] text-white/60 truncate">Pacific Ocean • 2m ago</p>
-                </div>
-                <Button size="sm" variant="outline" className="shrink-0 h-6 text-[10px] border-white/20 hover:bg-white/10 px-2">View</Button>
-              </div>
-            </div>}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* AI Insights Section */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-        <Card className="glass border-white/5 md:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-              <BrainCircuit className="w-4 h-4 text-purple-400" />
-              Predictive Insights
-            </CardTitle>
-            <Button variant="ghost" size="sm" className="text-[10px] font-bold text-muted-foreground hover:text-primary">VIEW ALL</Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {demoDataEnabled ? [1, 2].map((i) => (
-                <div key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
-                  <div className="w-7 h-7 rounded bg-purple-500/20 flex items-center justify-center shrink-0 text-purple-400">
-                    <TrendingUp className="w-3 h-3" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-xs font-bold text-white">Demand Spike Predicted</h4>
-                    <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
-                      AI models forecast a 25% increase in demand for electronics in APAC.
-                    </p>
-                  </div>
-                  <div className="text-[10px] font-bold text-primary shrink-0">98% CONF.</div>
-                </div>
-              )) : (
-                <p className="py-6 text-center text-sm text-muted-foreground">No predictive insights available.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="glass border-white/5 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-500/20" />
-          <CardHeader className="relative z-10 pb-2">
-            <CardTitle className="text-sm font-bold uppercase tracking-wider text-white">Ask IMSOP AI</CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10 flex flex-col h-[120px] justify-end">
-            <p className="text-[10px] text-white/80 mb-3 italic">{demoDataEnabled ? '"What is the status of shipment #12345?"' : "Ask about your supply chain."}</p>
-            <div className="relative">
-              <input type="text" placeholder="Query..." className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-primary/50 backdrop-blur-sm" />
-              <Button size="icon" className="absolute right-1 top-1 h-5 w-5 bg-primary hover:bg-primary/80 text-primary-foreground">
-                <ArrowUpRight className="w-3 h-3" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      <p className="muted text-xs">
+        Metrics describe this database snapshot. Counts are not whole-platform
+        totals. Unknown values indicate unavailable or unauthorized sources.
+      </p>
+    </>
   );
 }

@@ -1,10 +1,26 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, Mail, Shield, Camera, Key, LogOut, Eye, EyeOff } from "lucide-react";
+import { useData } from "@/contexts/DataContext";
+import {
+  User,
+  Mail,
+  Shield,
+  Camera,
+  Key,
+  LogOut,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -18,6 +34,7 @@ import {
 
 export default function Profile() {
   const { user, logout, updateProfile, changePassword } = useAuth();
+  const { demoIdentity } = useData();
   const [isUploading, setIsUploading] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -30,7 +47,11 @@ export default function Profile() {
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !demoIdentity) return;
+    if (file.size > 512000) {
+      toast.error("Choose an image smaller than 500 KB.");
+      return;
+    }
 
     setIsUploading(true);
     // Convert to base64 for localStorage storage
@@ -44,6 +65,10 @@ export default function Profile() {
         toast.error(result.error || "Failed to update avatar");
       }
       setIsUploading(false);
+    };
+    reader.onerror = () => {
+      setIsUploading(false);
+      toast.error("The image could not be read.");
     };
     reader.readAsDataURL(file);
   };
@@ -65,15 +90,22 @@ export default function Profile() {
       toast.error("Passwords do not match");
       return;
     }
-    if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    if (
+      newPassword.length < (demoIdentity ? 6 : 12) ||
+      newPassword.length > 128
+    ) {
+      toast.error(`Password must be ${demoIdentity ? 6 : 12}–128 characters`);
       return;
     }
 
     setIsChangingPassword(true);
     const result = await changePassword(currentPassword, newPassword);
     if (result.success) {
-      toast.success("Password changed successfully");
+      if (demoIdentity)
+        toast.info(
+          "Demo password flow validated. Demo credentials remain unchanged."
+        );
+      else toast.success("Password changed successfully");
       setIsPasswordDialogOpen(false);
       setCurrentPassword("");
       setNewPassword("");
@@ -91,27 +123,34 @@ export default function Profile() {
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
-    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+    return name
+      .split(" ")
+      .map(n => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div>
-        <h1 className="text-4xl font-bold font-display text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">
-          Profile
-        </h1>
-        <p className="text-muted-foreground mt-1">Manage your account and preferences.</p>
+        <h1 className="text-3xl font-semibold">Profile</h1>
+        <p className="text-muted-foreground mt-1">
+          Manage your account and preferences.
+        </p>
       </div>
 
       <div className="grid gap-6">
         {/* Profile Overview */}
-        <Card className="glass border-white/5">
+        <Card className="glass border-border">
           <CardHeader>
             <div className="flex items-center gap-2">
               <User className="w-5 h-5 text-primary" />
               <CardTitle>Profile Overview</CardTitle>
             </div>
-            <CardDescription>Your personal information and account details.</CardDescription>
+            <CardDescription>
+              Your personal information and account details.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -124,19 +163,30 @@ export default function Profile() {
                       {getInitials(user?.name)}
                     </AvatarFallback>
                   </Avatar>
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    <Camera className="w-6 h-6 text-white" />
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      className="hidden" 
-                      onChange={handleAvatarUpload}
-                      disabled={isUploading}
-                    />
-                  </label>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {isUploading ? "Uploading..." : "Click to upload"}
+                <label
+                  htmlFor="avatar-upload"
+                  className="text-xs font-medium text-primary"
+                >
+                  {demoIdentity
+                    ? "Demo profile image (max 500 KB)"
+                    : "Profile image updates unavailable"}
+                </label>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  aria-label="Demo profile image"
+                  className="text-xs max-w-[180px]"
+                  onChange={handleAvatarUpload}
+                  disabled={isUploading || !demoIdentity}
+                />
+                <p className="text-xs text-muted-foreground max-w-[180px]">
+                  {!demoIdentity
+                    ? "The production API supports name updates only."
+                    : isUploading
+                      ? "Reading image…"
+                      : "Stored only in the demo session."}
                 </p>
               </div>
 
@@ -146,14 +196,14 @@ export default function Profile() {
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
                     <div className="flex gap-2">
-                      <Input 
-                        id="name" 
-                        value={name} 
-                        onChange={(e) => setName(e.target.value)}
-                        className="bg-white/5 border-white/10"
+                      <Input
+                        id="name"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        className="bg-muted border-border"
                       />
                       {name !== user?.name && (
-                        <Button 
+                        <Button
                           onClick={handleNameUpdate}
                           disabled={isUpdatingName}
                           size="sm"
@@ -165,31 +215,31 @@ export default function Profile() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
-                    <Input 
-                      id="email" 
-                      value={user?.email || ""} 
+                    <Input
+                      id="email"
+                      value={user?.email || ""}
                       readOnly
-                      className="bg-white/5 border-white/10"
+                      className="bg-muted border-border"
                     />
                   </div>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="role">Role</Label>
-                    <Input 
-                      id="role" 
-                      value={user?.role || "user"} 
+                    <Input
+                      id="role"
+                      value={user?.role || "user"}
                       readOnly
-                      className="bg-white/5 border-white/10 capitalize"
+                      className="bg-muted border-border capitalize"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="joined">Account Status</Label>
-                    <Input 
-                      id="joined" 
-                      value="Active"
+                    <Label htmlFor="joined">Session Status</Label>
+                    <Input
+                      id="joined"
+                      value="Authenticated"
                       readOnly
-                      className="bg-white/5 border-white/10"
+                      className="bg-muted border-border"
                     />
                   </div>
                 </div>
@@ -199,13 +249,15 @@ export default function Profile() {
         </Card>
 
         {/* Security Settings */}
-        <Card className="glass border-white/5">
+        <Card className="glass border-border">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-amber-400" />
               <CardTitle>Security</CardTitle>
             </div>
-            <CardDescription>Manage your account security settings.</CardDescription>
+            <CardDescription>
+              Manage your account security settings.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
@@ -214,22 +266,29 @@ export default function Profile() {
                   <Key className="w-4 h-4" />
                   Password
                 </Label>
-                <p className="text-sm text-muted-foreground">Change your account password.</p>
+                <p className="text-sm text-muted-foreground">
+                  Change your account password.
+                </p>
               </div>
-              <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+              <Dialog
+                open={isPasswordDialogOpen}
+                onOpenChange={setIsPasswordDialogOpen}
+              >
                 <DialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="border-white/10 hover:bg-white/5"
+                  <Button
+                    variant="outline"
+                    className="border-border hover:bg-muted"
                   >
                     Change Password
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="glass border-white/10">
+                <DialogContent className="glass border-border">
                   <DialogHeader>
                     <DialogTitle>Change Password</DialogTitle>
                     <DialogDescription>
-                      Enter your current password and choose a new one.
+                      {demoIdentity
+                        ? "Validate the demo flow; published demo credentials remain fixed."
+                        : "Enter your current password and choose a new password (12–128 characters)."}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 pt-4">
@@ -240,15 +299,22 @@ export default function Profile() {
                           id="current-password"
                           type={showPasswords ? "text" : "password"}
                           value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
-                          className="bg-white/5 border-white/10 pr-10"
+                          onChange={e => setCurrentPassword(e.target.value)}
+                          className="bg-muted border-border pr-10"
                         />
                         <button
                           type="button"
+                          aria-label={
+                            showPasswords ? "Hide passwords" : "Show passwords"
+                          }
                           onClick={() => setShowPasswords(!showPasswords)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
-                          {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showPasswords ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -258,21 +324,23 @@ export default function Profile() {
                         id="new-password"
                         type={showPasswords ? "text" : "password"}
                         value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        className="bg-white/5 border-white/10"
+                        onChange={e => setNewPassword(e.target.value)}
+                        className="bg-muted border-border"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm New Password</Label>
+                      <Label htmlFor="confirm-password">
+                        Confirm New Password
+                      </Label>
                       <Input
                         id="confirm-password"
                         type={showPasswords ? "text" : "password"}
                         value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="bg-white/5 border-white/10"
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        className="bg-muted border-border"
                       />
                     </div>
-                    <Button 
+                    <Button
                       onClick={handlePasswordChange}
                       disabled={isChangingPassword}
                       className="w-full"
@@ -289,10 +357,12 @@ export default function Profile() {
                   <Mail className="w-4 h-4" />
                   Email Verification
                 </Label>
-                <p className="text-sm text-muted-foreground">Your email is verified.</p>
+                <p className="text-sm text-muted-foreground">
+                  Email verification status is not supplied by the account API.
+                </p>
               </div>
-              <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-sm font-medium">
-                Verified
+              <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-sm font-medium">
+                Not available
               </span>
             </div>
           </CardContent>
@@ -311,12 +381,11 @@ export default function Profile() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label className="text-base">Sign Out</Label>
-                <p className="text-sm text-muted-foreground">End your current session and return to login.</p>
+                <p className="text-sm text-muted-foreground">
+                  End your current session and return to login.
+                </p>
               </div>
-              <Button 
-                variant="destructive"
-                onClick={handleLogout}
-              >
+              <Button variant="destructive" onClick={handleLogout}>
                 Sign Out
               </Button>
             </div>

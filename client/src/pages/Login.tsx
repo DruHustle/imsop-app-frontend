@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrainCircuit, Lock, Mail, Eye, EyeOff } from "lucide-react";
@@ -50,17 +56,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[url('/images/hero-bg.jpg')] bg-cover bg-center relative">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      
-      <Card className="w-full max-w-md glass-panel border-white/10 relative z-10 animate-in fade-in zoom-in duration-500">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      <Card className="w-full max-w-md glass-panel border-border relative z-10 animate-in fade-in zoom-in duration-500">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded bg-primary flex items-center justify-center shadow-[0_0_20px_var(--primary)]">
+            <div className="w-12 h-12 rounded bg-primary flex items-center justify-center ">
               <BrainCircuit className="w-7 h-7 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-display font-bold tracking-wide">Welcome to IMSOP</CardTitle>
+          <h1 className="text-2xl font-semibold">Welcome to IMSOP</h1>
           <CardDescription className="text-muted-foreground">
             Intelligent Multi-Cloud Supply Chain & Operations Platform
           </CardDescription>
@@ -76,19 +80,19 @@ export default function Login() {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 bg-background/50 border-white/20"
+                  onChange={e => setEmail(e.target.value)}
+                  className="pl-10 bg-background/50 border-border"
                   required
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
                 <button
                   type="button"
-                  onClick={() => navigate('/forgot-password')}
+                  onClick={() => navigate("/forgot-password")}
                   className="text-xs text-primary hover:underline"
                 >
                   Forgot password?
@@ -101,60 +105,89 @@ export default function Login() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 bg-background/50 border-white/20"
+                  onChange={e => setPassword(e.target.value)}
+                  className="pl-10 pr-10 bg-background/50 border-border"
                   required
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary hover:bg-primary/80 text-primary-foreground shadow-[0_0_15px_var(--primary)]"
+              className="w-full bg-primary hover:bg-primary/80 text-primary-foreground "
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
           <div className="text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account? </span>
+            <span className="text-muted-foreground">
+              Don't have an account?{" "}
+            </span>
             <button
-              onClick={() => navigate('/register')}
+              onClick={() => navigate("/register")}
               className="text-primary hover:underline font-semibold"
             >
               Sign Up
             </button>
           </div>
-          
+
           <div className="space-y-3">
-            <p className="text-xs text-center text-muted-foreground">Demo Accounts (click to fill):</p>
+            <p className="text-xs text-center text-muted-foreground">
+              Demo Accounts (click to fill):
+            </p>
             <div className="flex flex-wrap gap-2 justify-center">
-              <Button variant="outline" size="sm" onClick={() => fillDemoCredentials("admin")} className="text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fillDemoCredentials("admin")}
+                className="text-xs"
+              >
                 Admin
               </Button>
-              <Button variant="outline" size="sm" onClick={() => fillDemoCredentials("engineer")} className="text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fillDemoCredentials("engineer")}
+                className="text-xs"
+              >
                 Engineer
               </Button>
-              <Button variant="outline" size="sm" onClick={() => fillDemoCredentials("analyst")} className="text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fillDemoCredentials("analyst")}
+                className="text-xs"
+              >
                 Analyst
               </Button>
-              <Button variant="outline" size="sm" onClick={() => fillDemoCredentials("demo")} className="text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fillDemoCredentials("demo")}
+                className="text-xs"
+              >
                 Demo
               </Button>
             </div>
           </div>
-          
+
           <div className="mt-6 text-center text-xs text-muted-foreground">
             <p>Protected by IMSOP Identity Service</p>
-            <p>v2.5.0-stable</p>
+            <p>Demo identities use isolated, labelled example data.</p>
           </div>
         </CardContent>
       </Card>
