@@ -23,25 +23,13 @@ class ApiClient {
       timeout: 10000,
     });
 
-    // Request Interceptor
-    this.client.interceptors.request.use(
-      (config) => {
-        const token = safeLocalStorage.getItem('imsop_token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-
     // Response Interceptor
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
         // Standardized error handling
         const message = error.response?.data?.message || error.message || 'An unknown error occurred';
-        console.error('[API Error]:', message);
+        if(error.response?.status===401) window.dispatchEvent(new Event('imsop:session-expired'));
         return Promise.reject({ ...error, message });
       }
     );

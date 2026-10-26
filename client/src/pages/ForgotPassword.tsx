@@ -29,18 +29,6 @@ export default function ForgotPassword() {
       const result = await requestPasswordReset(email);
       if (result.success) {
         setEmailSent(true);
-        // For demo purposes, show the token (in production, this would be sent via email)
-        if (result.token) {
-          toast.success("Demo: Reset token generated", {
-            description: `Token: ${result.token.substring(0, 8)}...`,
-            duration: 10000,
-          });
-          // Auto-navigate to reset page with token for demo
-          setTimeout(
-            () => navigate(`/reset-password?token=${result.token}`),
-            2000
-          );
-        }
       } else {
         toast.error(result.error || "Failed to send reset email");
       }
@@ -65,13 +53,12 @@ export default function ForgotPassword() {
               Check Your Email
             </h1>
             <CardDescription className="text-muted-foreground">
-              If an account exists for {email}, you will receive a password
-              reset link shortly.
+              If an eligible account exists for {email}, a reset link has been requested. Delivery may take a few minutes.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-center text-muted-foreground">
-              Demo Mode: Redirecting to reset page...
+              A request does not confirm email delivery. Check spam, then retry if no link arrives. Demo accounts do not receive recovery emails.
             </p>
             <Button
               variant="outline"

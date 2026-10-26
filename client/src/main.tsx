@@ -1,3 +1,5 @@
+import { captureResetToken } from './lib/recovery';
+captureResetToken();
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";

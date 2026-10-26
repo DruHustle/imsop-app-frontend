@@ -10,7 +10,7 @@ export interface AuthResponse {
 
 export interface IAuthService {
   login(email: string, password: string): Promise<AuthResponse>;
-  logout(): void;
+  logout(): void | Promise<void>;
   getCurrentUser(): Promise<AuthResponse>;
   register(email: string, password: string, name: string): Promise<AuthResponse>;
   requestPasswordReset(email: string): Promise<AuthResponse>;

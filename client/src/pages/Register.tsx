@@ -59,6 +59,7 @@ export default function Register() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <p id="password-policy" className="text-sm text-muted-foreground mb-4">Use 12–128 characters for your password.</p>
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
@@ -98,6 +99,9 @@ export default function Register() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
+                  minLength={12}
+                  maxLength={128}
+                  aria-describedby="password-policy"
                   type={showPassword ? "text" : "password"}
                   placeholder="Create a password"
                   value={password}
@@ -142,7 +146,7 @@ export default function Register() {
 
           <div className="mt-6 text-center text-xs text-muted-foreground">
             <p>Protected by IMSOP Identity Service</p>
-            <p>v2.5.0-stable</p>
+            <p>IMSOP</p>
           </div>
         </CardContent>
       </Card>

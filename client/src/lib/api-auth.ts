@@ -15,6 +15,8 @@ export class ApiAuthService implements IAuthService {
       const res = await fetch(`${API_BASE}${path}`, {
         ...opts, signal: controller.signal, credentials: 'include', headers: { 'Content-Type': 'application/json', ...opts.headers }
       });
+      if (res.status === 401 && path === '/api/auth/logout') { safeSessionStorage.removeItem('imsop:signout-pending'); return {}; }
+      if (res.status === 401 && !['/api/auth/login','/api/auth/me'].includes(path)) window.dispatchEvent(new Event('imsop:session-expired'));
       if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'API failed');
       if (res.status === 204) return {};
       return await res.json();
@@ -27,16 +29,20 @@ export class ApiAuthService implements IAuthService {
   }
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
+      if (safeSessionStorage.getItem('imsop:signout-pending')) await this.logout();
       const { user } = await this.fetchApi('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
       const s = getStorage(); s.removeItem(TOKEN_KEY); s.setItem(USER_KEY, JSON.stringify(user));
       return { success: true, user };
     } catch (e: any) { return { success: false, error: e.message }; }
   }
-  logout = () => {
-    void this.fetchApi('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
+  logout = async () => {
+    safeSessionStorage.setItem('imsop:signout-pending','true');
     [TOKEN_KEY, USER_KEY].forEach(k => getStorage().removeItem(k));
+    await this.fetchApi('/api/auth/logout', { method: 'POST' });
+    safeSessionStorage.removeItem('imsop:signout-pending');
   };
   async getCurrentUser(): Promise<AuthResponse> {
+    if (safeSessionStorage.getItem('imsop:signout-pending')) return {success:false,error:'Sign out was not confirmed. Sign in retries it before continuing.'};
     const t = getStorage().getItem(TOKEN_KEY);
     if (t?.startsWith('mock_')) return { success: false };
     try { return { success: true, user: (await this.fetchApi('/api/auth/me')).user }; } catch { return { success: false }; }

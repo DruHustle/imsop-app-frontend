@@ -54,6 +54,9 @@ jobs:
           VITE_BASE_PATH: /
         run: pnpm e2e
 
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
       - name: Build
         env:
           VITE_API_URL: https://imsop-api.152-70-22-84.sslip.io
