@@ -1,0 +1,32 @@
+
+> imsop-app@1.0.0 e2e /Users/andrewgotora/Software Development/GitHub/imsop-app/imsop-app-frontend
+> playwright test --workers\=2 --reporter\=line --grep 'live assistant uses|visual secondary'
+
+[WebServer] (node:46660) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:46784) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:47182) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:47209) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:47210) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:47228) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 6 tests using 2 workers
+
+[1/6] [chromium] › e2e/visual.spec.ts:82:3 › visual secondary workspaces light
+[2/6] [chromium] › e2e/api-routing.spec.ts:137:1 › live assistant uses permitted records and infrastructure remains honestly scoped
+[3/6] [chromium] › e2e/visual.spec.ts:82:3 › visual secondary workspaces dark
+[4/6] [mobile-chromium] › e2e/api-routing.spec.ts:137:1 › live assistant uses permitted records and infrastructure remains honestly scoped
+[5/6] [mobile-chromium] › e2e/visual.spec.ts:82:3 › visual secondary workspaces light
+[6/6] [mobile-chromium] › e2e/visual.spec.ts:82:3 › visual secondary workspaces dark
+  6 passed (22.4s)

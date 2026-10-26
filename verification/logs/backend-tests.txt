@@ -1,0 +1,75 @@
+
+> server@1.0.0 test /Users/andrewgotora/Software Development/GitHub/imsop-app/imsop-app-backend/server
+> node --test --import tsx src/app.test.ts
+
+TAP version 13
+# [dotenv@17.2.3] injecting env (20) from .env.local -- tip: ⚙️  override existing env vars with { override: true }
+# Subtest: API and authentication limits use independent windows and cover changing paths
+ok 1 - API and authentication limits use independent windows and cover changing paths
+  ---
+  duration_ms: 0.522958
+  ...
+# Subtest: API errors return JSON and unsafe cross-site cookie requests are rejected
+ok 2 - API errors return JSON and unsafe cross-site cookie requests are rejected
+  ---
+  duration_ms: 56.536625
+  ...
+# Subtest: HTML reports escape stored data
+ok 3 - HTML reports escape stored data
+  ---
+  duration_ms: 0.168209
+  ...
+# Subtest: allowed origins are trimmed and support multiple Vercel domains
+ok 4 - allowed origins are trimmed and support multiple Vercel domains
+  ---
+  duration_ms: 0.073542
+  ...
+# Subtest: production configuration rejects invalid Gmail app passwords
+ok 5 - production configuration rejects invalid Gmail app passwords
+  ---
+  duration_ms: 0.542125
+  ...
+# Subtest: GET /health returns ok
+ok 6 - GET /health returns ok
+  ---
+  duration_ms: 6.832708
+  ...
+# Subtest: authentication routes validate input before accessing the database
+ok 7 - authentication routes validate input before accessing the database
+  ---
+  duration_ms: 7.685333
+  ...
+# Subtest: protected operations reject anonymous requests
+ok 8 - protected operations reject anonymous requests
+  ---
+  duration_ms: 2.707209
+  ...
+# Subtest: role-protected operations reject authenticated users without a permitted role
+ok 9 - role-protected operations reject authenticated users without a permitted role
+  ---
+  duration_ms: 5.347292
+  ...
+# Subtest: logistics webhooks reject invalid signatures
+ok 10 - logistics webhooks reject invalid signatures
+  ---
+  duration_ms: 5.241792
+  ...
+# Subtest: signed logistics webhooks validate canonical payloads before database access
+ok 11 - signed logistics webhooks validate canonical payloads before database access
+  ---
+  duration_ms: 17.367667
+  ...
+# Subtest: bounded operational reads preserve permissions, identities and event provenance
+ok 12 - bounded operational reads preserve permissions, identities and event provenance
+  ---
+  duration_ms: 144.23925
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1961.865709
