@@ -1,0 +1,21 @@
+{
+  "before": {
+    "client/public/favicon.ico": 5041945,
+    "client/public/favicon.png": 7405709,
+    "client/public/favicon.svg": 6967608,
+    "client/public/images/hero-bg.jpg": 5805479,
+    "client/public/images/ai-analytics.jpg": 6176596,
+    "client/public/images/dashboard-bg.jpg": 4759438,
+    "client/public/images/profile.jpg": 715043
+  },
+  "after": {
+    "client/public/favicon.ico": 7817,
+    "client/public/favicon.png": 7795,
+    "client/public/favicon.svg": 10524,
+    "client/public/images/hero-bg.jpg": 222625,
+    "client/public/images/ai-analytics.jpg": 231942,
+    "client/public/images/dashboard-bg.jpg": 98196,
+    "client/public/images/profile.jpg": 406907
+  },
+  "additionalAppleTouchIconBytes": 47488
+}

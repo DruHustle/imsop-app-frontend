@@ -17,7 +17,11 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    # Match the locked Playwright package; browsers and system libraries are preinstalled.
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      options: --ipc=host
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,8 +46,8 @@ jobs:
       - name: Audit production dependencies
         run: pnpm audit --prod --audit-level=moderate
 
-      - name: Install Playwright Chromium
-        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify Playwright Chromium
+        run: pnpm exec playwright install chromium
 
       - name: Run desktop and mobile end-to-end tests
         env:
@@ -64,7 +68,7 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

@@ -1,30 +1,31 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'html',
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "html",
   use: {
-    baseURL: 'http://127.0.0.1:4173',
-    trace: 'on-first-retry',
+    baseURL: "http://127.0.0.1:4188",
+    trace: "on-first-retry",
   },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: 'mobile-chromium',
-      use: { ...devices['Pixel 5'] },
+      name: "mobile-chromium",
+      use: { ...devices["Pixel 5"] },
     },
   ],
   webServer: {
-    command: 'VITE_BASE_PATH=/ pnpm build && VITE_BASE_PATH=/ pnpm preview --host 127.0.0.1 --port 4173',
-    url: 'http://127.0.0.1:4173',
-    reuseExistingServer: !process.env.CI,
+    command:
+      "VITE_BASE_PATH=/ pnpm build && VITE_BASE_PATH=/ pnpm preview --host 127.0.0.1 --port 4188",
+    url: "http://127.0.0.1:4188",
+    reuseExistingServer: false,
     timeout: 180000,
   },
 });

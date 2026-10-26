@@ -1,63 +1,10 @@
-/**
- * GOOGLE MAPS FRONTEND INTEGRATION - ESSENTIAL GUIDE
- *
- * USAGE FROM PARENT COMPONENT:
- * ======
- *
- * const mapRef = useRef<google.maps.Map | null>(null);
- *
- * <MapView
- *   initialCenter={{ lat: 40.7128, lng: -74.0060 }}
- *   initialZoom={15}
- *   onMapReady={(map) => {
- *     mapRef.current = map; // Store to control map from parent anytime
- *   }}
- * />
- *
- * ======
- * Available Libraries and Core Features:
- * -------------------------------
- * 📍 MARKER (from `marker` library)
- * new google.maps.marker.AdvancedMarkerElement({
- *   map,
- *   position: { lat: 37.7749, lng: -122.4194 },
- *   title: "San Francisco",
- * });
- *
- * -------------------------------
- * 🏢 PLACES (from `places` library)
- * const place = new google.maps.places.Place({ id: PLACE_ID });
- * await place.fetchFields({ fields: ["displayName", "location"] });
- * map.setCenter(place.location);
- *
- * -------------------------------
- * 🧭 GEOCODER (from `geocoding` library)
- * const geocoder = new google.maps.Geocoder();
- * geocoder.geocode({ address: "New York" }, (results, status) => {
- *   if (status === "OK" && results[0]) {
- *     map.setCenter(results[0].geometry.location);
- *   }
- * });
- *
- * -------------------------------
- * 📐 GEOMETRY (from `geometry` library)
- * const dist = google.maps.geometry.spherical.computeDistanceBetween(p1, p2);
- *
- * -------------------------------
- * 🛣️ ROUTES (from `routes` library)
- * const directionsService = new google.maps.DirectionsService();
- * const directionsRenderer = new google.maps.DirectionsRenderer({ map });
- * directionsService.route(
- *   { origin, destination, travelMode: "DRIVING" },
- *   (res, status) => status === "OK" && directionsRenderer.setDirections(res)
- * );
- */
-
 /// <reference types="@types/google.maps" />
 
 import { useEffect, useRef, useState } from "react";
-import { usePersistFn } from "@/hooks/usePersistFn";
+
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
+import { useTheme } from "@/contexts/ThemeContext";
 
 declare global {
   interface Window {
@@ -74,7 +21,8 @@ let mapScriptPromise: Promise<void> | null = null;
 
 function loadMapScript(): Promise<void> {
   if (window.google?.maps) return Promise.resolve();
-  if (!API_KEY) return Promise.reject(new Error("Google Maps API key is not configured"));
+  if (!API_KEY)
+    return Promise.reject(new Error("Google Maps API key is not configured"));
   if (mapScriptPromise) return mapScriptPromise;
 
   const scriptPromise = new Promise<void>((resolve, reject) => {
@@ -86,7 +34,8 @@ function loadMapScript(): Promise<void> {
       if (settled) return;
       settled = true;
       if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-      if (window.initGoogleMaps === onReady) window.initGoogleMaps = previousInit;
+      if (window.initGoogleMaps === onReady)
+        window.initGoogleMaps = previousInit;
 
       if (error) reject(error);
       else resolve();
@@ -103,7 +52,7 @@ function loadMapScript(): Promise<void> {
     const onError = () => finish(new Error("Failed to load Google Maps"));
 
     const existingScript = document.querySelector<HTMLScriptElement>(
-      'script[src*="maps.googleapis.com/maps/api/js"]',
+      'script[src*="maps.googleapis.com/maps/api/js"]'
     );
     const script = existingScript ?? document.createElement("script");
 
@@ -118,7 +67,7 @@ function loadMapScript(): Promise<void> {
     script.addEventListener("error", onError, { once: true });
     timeoutId = window.setTimeout(
       () => finish(new Error("Timed out while loading Google Maps")),
-      15_000,
+      15_000
     );
 
     if (!existingScript) document.head.appendChild(script);
@@ -132,105 +81,189 @@ function loadMapScript(): Promise<void> {
   return mapScriptPromise;
 }
 
+interface Asset {
+  id: string;
+  label: string;
+  position: google.maps.LatLngLiteral;
+  href?: string;
+}
 interface MapViewProps {
   className?: string;
-  initialCenter?: google.maps.LatLngLiteral;
-  initialZoom?: number;
-  onMapReady?: (map: google.maps.Map) => void;
-  assets?: Array<{ id: string; label: string; position: google.maps.LatLngLiteral }>;
+  assets?: Asset[];
 }
-
-export function MapView({
-  className,
-  initialCenter = { lat: 37.7749, lng: -122.4194 },
-  initialZoom = 12,
-  onMapReady,
-  assets = [],
-}: MapViewProps) {
-  const mapContainer = useRef<HTMLDivElement>(null);
+export function MapView({ className, assets = [] }: MapViewProps) {
+  const container = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
-  const authenticationFailed = useRef(false);
-  const [status, setStatus] = useState<"loading" | "google" | "fallback">("loading");
-
-  const init = usePersistFn(async (isActive: () => boolean) => {
-    if (!API_KEY) {
-      if (isActive()) setStatus("fallback");
-      return;
-    }
-
-    try {
-      await loadMapScript();
-      if (!isActive() || authenticationFailed.current) return;
-      if (!mapContainer.current || !window.google?.maps) {
-        throw new Error("Google Maps could not initialize the map");
-      }
-
-      map.current = new window.google.maps.Map(mapContainer.current, {
-        zoom: initialZoom,
-        center: initialCenter,
-        mapTypeControl: true,
-        fullscreenControl: true,
-        zoomControl: true,
-        streetViewControl: true,
-        mapId: "DEMO_MAP_ID",
-      });
-
-      setStatus("google");
-      assets.slice(0, 100).forEach(asset => {
-        new window.google.maps.Marker({
-          map: map.current,
-          position: asset.position,
-          title: `${asset.label} (${asset.id})`,
-        });
-      });
-      onMapReady?.(map.current);
-    } catch (error) {
-      console.error("Failed to initialize map:", error);
-      if (isActive()) setStatus("fallback");
-    }
-  });
-
+  const [status, setStatus] = useState<"loading" | "google" | "fallback">(
+    "loading"
+  );
+  const { theme } = useTheme();
+  const valid = assets.filter(
+    a =>
+      Number.isFinite(a.position.lat) &&
+      Number.isFinite(a.position.lng) &&
+      Math.abs(a.position.lat) <= 90 &&
+      Math.abs(a.position.lng) <= 180
+  );
   useEffect(() => {
     let active = true;
-    const previousAuthFailure = window.gm_authFailure;
-    const handleAuthFailure = () => {
-      previousAuthFailure?.();
-      authenticationFailed.current = true;
-      console.error("Google Maps authentication failed; showing OpenStreetMap instead.");
+    const previous = window.gm_authFailure;
+    const fail = () => {
       if (active) setStatus("fallback");
     };
-
-    window.gm_authFailure = handleAuthFailure;
-    init(() => active);
-
+    window.gm_authFailure = fail;
+    void loadMapScript()
+      .then(() => {
+        if (!active || !container.current || !window.google?.maps) return;
+        map.current = new window.google.maps.Map(container.current, {
+          center: { lat: 15, lng: 0 },
+          zoom: 2,
+          streetViewControl: false,
+          mapTypeControl: false,
+        });
+        setStatus("google");
+      })
+      .catch(fail);
     return () => {
       active = false;
-      if (window.gm_authFailure === handleAuthFailure) {
-        window.gm_authFailure = previousAuthFailure;
-      }
+      if (window.gm_authFailure === fail) window.gm_authFailure = previous;
+      if (map.current)
+        window.google?.maps.event.clearInstanceListeners(map.current);
       map.current = null;
     };
-  }, [init]);
-
+  }, []);
+  useEffect(() => {
+    if (status !== "google" || !map.current || !window.google?.maps) return;
+    const bounds = new window.google.maps.LatLngBounds();
+    const markers = valid.map(a => {
+      const marker = new window.google!.maps.Marker({
+        map: map.current,
+        position: a.position,
+        title: a.label,
+      });
+      bounds.extend(a.position);
+      if (a.href)
+        marker.addListener("click", () => {
+          window.location.hash = a.href!;
+        });
+      return marker;
+    });
+    if (valid.length) map.current.fitBounds(bounds, 45);
+    return () =>
+      markers.forEach(marker => {
+        window.google?.maps.event.clearInstanceListeners(marker);
+        marker.setMap(null);
+      });
+  }, [assets, status]);
+  useEffect(() => {
+    const apply = () =>
+      map.current?.setOptions({
+        styles: document.documentElement.classList.contains("dark")
+          ? [
+              { elementType: "geometry", stylers: [{ color: "#1e3045" }] },
+              {
+                elementType: "labels.text.fill",
+                stylers: [{ color: "#bacbdb" }],
+              },
+              {
+                elementType: "labels.text.stroke",
+                stylers: [{ color: "#142235" }],
+              },
+            ]
+          : [],
+      });
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, [theme, status]);
   return (
-    <div className={cn("relative w-full h-[500px]", className)}>
-      <iframe
-        title="Global activity map powered by OpenStreetMap"
-        src="https://www.openstreetmap.org/export/embed.html?bbox=-180%2C-85%2C180%2C85&layer=mapnik"
-        className={cn(
-          "absolute inset-0 h-full w-full border-0",
-          status === "google" ? "invisible" : "visible",
-        )}
-        loading="eager"
-      />
+    <div className={cn("space-y-3", className)}>
+      <p className="muted text-xs">
+        {status === "google"
+          ? "Map markers from supplied coordinates only."
+          : "Tracking map provider unavailable or not configured. Showing a schematic coordinate view and linked records."}{" "}
+        {valid.length} records have valid coordinates. No destination-based
+        positions are inferred.
+      </p>
       <div
-        ref={mapContainer}
-        className={cn(
-          "absolute inset-0 h-full w-full",
-          status === "google" ? "visible" : "invisible",
-        )}
-        aria-hidden={status !== "google"}
+        ref={container}
+        className={status === "google" ? "h-[340px] rounded border" : "hidden"}
+        aria-label="Shipment map"
       />
+      {status !== "google" && (
+        <div className="map-fallback">
+          <svg
+            viewBox="0 0 720 360"
+            role="img"
+            aria-label={`Schematic longitude and latitude plot of ${valid.length} recorded positions. Use the linked coordinate list below.`}
+          >
+            <rect width="720" height="360" fill="var(--muted)" />
+            {[-180, -120, -60, 0, 60, 120, 180].map(x => (
+              <g key={x}>
+                <path d={`M${(x + 180) * 2} 0V360`} stroke="var(--border)" />
+                <text
+                  x={(x + 180) * 2 + 4}
+                  y={350}
+                  fontSize="9"
+                  fill="var(--muted-foreground)"
+                >
+                  {x}°
+                </text>
+              </g>
+            ))}
+            {[-60, -30, 0, 30, 60].map(y => (
+              <g key={y}>
+                <path d={`M0 ${(90 - y) * 2}H720`} stroke="var(--border)" />
+                <text
+                  x="5"
+                  y={(90 - y) * 2 - 5}
+                  fontSize="9"
+                  fill="var(--muted-foreground)"
+                >
+                  {y}°
+                </text>
+              </g>
+            ))}
+            {valid.map(a => (
+              <Link
+                href={a.href ?? `/supply-chain/shipments/${a.id}`}
+                key={a.id}
+                aria-label={`Open ${a.label}`}
+              >
+                <circle
+                  cx={(a.position.lng + 180) * 2}
+                  cy={(90 - a.position.lat) * 2}
+                  r="5"
+                >
+                  <title>{a.label}</title>
+                </circle>
+              </Link>
+            ))}
+          </svg>
+        </div>
+      )}
+      <div className="coordinate-list">
+        {valid.map(a => (
+          <div key={a.id}>
+            <Link href={a.href ?? `/supply-chain/shipments/${a.id}`}>
+              {a.label} ↗
+            </Link>
+            <p className="muted">
+              Latitude {a.position.lat} · Longitude {a.position.lng}
+            </p>
+          </div>
+        ))}
+      </div>
+      {!valid.length && (
+        <p className="muted text-sm">
+          No valid coordinates in the filtered records. Use List to inspect
+          shipments.
+        </p>
+      )}
     </div>
   );
 }

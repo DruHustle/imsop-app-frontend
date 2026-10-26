@@ -1,484 +1,73 @@
-# IMSOP - Intelligent Multi-Cloud Supply Chain & Operations Platform
+# IMSOP frontend
 
-> Repository boundary: this repository contains frontend artifacts only. The API, database migrations, deployment manifests, backend environment, and backend documentation live in the sibling `imsop-app-backend` repository. Backend commands shown later in this historical README must be run from that repository.
+React, TypeScript, Tailwind and Radix workspace for authorized shipment and operational-order reads. The Node API, .NET services, database, and infrastructure remain in the independent [backend repository](https://github.com/DruHustle/imsop-app-backend).
 
-**Version:** 1.0.0  
-**Author:** Andrew Gotora  
-**Email:** andrewgotora@yahoo.com
+## Workspace
 
-## 🚀 Quick Links
+- **Overview:** counts and exception links from the same authorized shipment/order scope.
+- **Supply chain:** shipment search, status/carrier/mode/creation-date filters, sorting, pagination, coordinate view, stable-ID details and provider event history. Orders are Node operational records with their own numeric identities.
+- **Insights:** descriptive analytics with a valid on-time denominator, evidence-review scenarios in Demo mode, and a deterministic data assistant. No model provider or predictive accuracy is claimed.
+- **Infrastructure:** observed API liveness/readiness, explicit freshness, and connector availability. These checks do not establish carrier, SAP, messaging, cloud-resource or whole-platform health.
+- **Account menu:** profile and persisted preferences. The header includes Notifications, global Live/Demo selection and Light/Dark/System selection.
 
-- [Live Demo](https://imsop-app.vercel.app/) - View the live demo
-- [GitHub Repository](https://github.com/DruHustle/imsop-app-frontend) - View source code
-- [Issues](https://github.com/DruHustle/imsop-app-frontend/issues) - Report bugs or request features
+Routes and role requirements are defined in `client/src/lib/routes.ts`; Wouter remains the single hash router. Legacy `/operations`, `/analytics`, `/intelligence`, `/assistant`, `/infrastructure`, `/settings` and `/profile` hash destinations are retained. Password reset keeps its existing outer `?token=…#/reset-password` handling. Filters and return destinations use hash query parameters.
 
-## Overview
+| Capability | admin | engineer | analyst | user |
+|---|---|---|---|---|
+| Shipments, Overview, Assistant | Yes | Yes | Yes | Yes |
+| Node operational Orders | Yes | Yes | Yes | No |
+| Analytics / reports | Yes | No | Yes | No |
+| Recommendations | Yes | Yes | Yes | No |
+| Infrastructure | Yes | Yes | No | No |
 
-IMSOP is an enterprise-grade platform designed for real-time supply chain visibility, operational analytics, and multi-cloud infrastructure management. The platform provides comprehensive tools for monitoring operations, managing telemetry data, and gaining actionable insights through advanced analytics.
+The API enforces read and report permissions independently of navigation. Live client exports also check `/api/operations/reports/access` before generating a file or report window.
 
-### Architecture
+## Source contracts and limits
 
-The application uses a modern three-tier architecture:
+The workspace reads the **newest 500 authorized records by database ID**, then filters/paginates that explicit scope. Source totals are reported separately; counts are not whole-platform totals. This intentional bound avoids unbounded queries and per-row requests. Older records can be opened by a known stable detail URL, but are outside list, analytic and Assistant scope.
 
-- **Frontend**: React app hosted on GitHub Pages
-- **Backend**: Node.js/Express API hosted on Render
-- **Database**: MySQL hosted on Aiven
+Bounded list APIs require the accompanying backend changes:
 
-The frontend communicates with the backend API for authentication, data management, and business logic, while static assets are served directly from GitHub Pages.
+- `GET /api/operations/shipments?limit=500&offset=0`
+- `GET /api/operations/orders?limit=500&offset=0`
+- `GET /api/operations/shipments/:id`
+- `GET /api/operations/shipments/:id/events?limit=50&offset=0`
+- `GET /api/operations/orders/:id`
 
-#### Hybrid Authentication
+Lists return `{ items, total, limit, offset, source, scope }`. Missing or older contracts produce an unavailable state, never fixture fallback. The typed adapter deliberately maps provider statuses and transport modes, preserves zero values, and separates stable IDs from tracking numbers. `observedAt`, `receivedAt`, and `provider` describe the latest stored event ordered by occurrence time and event ID; they do not timestamp every field of the shipment snapshot. No shipment/order/document associations are invented.
 
-The application uses a **hybrid authentication system** that supports both:
+Node `orders` are distinct from .NET `PurchaseOrder` GUIDs, organization/supplier relationships and `ApiResponse<T>` envelopes. Currency, line items, supplier details, and shipment associations absent from Node's contract are shown as unavailable. There is no production shipment-creation workflow or complete purchase-order form. The visible New shipment action explains the integration prerequisite.
 
-1. **Demo Accounts** (localStorage) - For quick testing and demonstrations
-   - Email domains: `@imsop.io`, `@demo.local`
-   - Pre-configured accounts: admin@imsop.io, engineer@imsop.io, analyst@imsop.io, demo@imsop.io
-   - No backend required, works offline
+## Live and Demo
 
-2. **Production Accounts** (Backend API) - For real users
-   - All other email addresses use the Render backend
-   - Persistent storage in MySQL database
-   - JWT token-based authentication
+Real accounts start with loading states and Live reads. Demo identities use deterministic fixtures, explicitly as of **26 October 2026 at 09:00 UTC**. Real users may deliberately select Demo, with their role restrictions retained. Mode applies across every workspace page, map, notification, Assistant answer and export. A demo token or local mode flag never authenticates a production request.
 
-The system automatically detects which authentication method to use based on the email address.
+Mode and local preferences are scoped by user identity. Notification read/dismissal state is scoped by user and mode and cleared on logout/account changes. Production notification delivery/preferences are unavailable; live accounts receive no seeded demo notifications. The Assistant keeps conversations only in memory and resets on user/mode changes. It supports known tracking/order numbers, counts and exception summaries; it does not execute actions or invent causes/forecasts. Overview/detail queries open for review and require one explicit send.
 
-## Key Features
+On-time rate counts delivered records with both actual and estimated arrival timestamps. Numerator is actual arrival at or before the estimate; denominator is all eligible deliveries. No costs, revenue, savings or model accuracy are inferred.
 
-### Real-time Operations Monitoring
-Monitor supply chain operations in real-time with live dashboards and alerts. Track shipments, inventory levels, and operational metrics across multiple locations and cloud providers.
+The map is secondary to List. Only valid supplied coordinates become markers. Google Maps remains optional; unavailable/keyless operation uses an explicitly schematic longitude/latitude plot and linked coordinate list. Marker updates and listeners are cleaned up as the selected scope changes. Missing coordinates remain inspectable in List.
 
-### Advanced Telemetry Collection
-Collect and analyze telemetry data from various sources including IoT devices, sensors, and operational systems. Process high-volume data streams with minimal latency.
+## Appearance and accessibility
 
-### Multi-Cloud Infrastructure Management
-Manage resources and deployments across multiple cloud providers including Azure, AWS, and on-premise infrastructure through unified Kubernetes orchestration.
+Light and dark palettes cover the shell, operational pages, auth, menus and dialogs. System theme changes are observed. Reduced-motion and contrast preferences persist; operating-system reduced motion is always respected. The mobile drawer supports keyboard use, Escape and destination closing, and restores focus to the selected page. Mobile advanced filters use a disclosure to keep shipment cards near the search field.
 
-### Interactive Mapping & Geospatial Analytics
-Visualize supply chain networks, shipment routes, and operational locations using Google Maps integration with real-time tracking capabilities.
+Reports export the filtered scope with data mode, source, date/filter scope and generation time. HTML values/titles are escaped; CSV formula prefixes are neutralized. Browser reports use the label **Print / Save as PDF**. Empty scopes, permission failures and blocked report windows have explicit behavior; browser download completion cannot be verified, so the UI only reports that a download was requested.
 
-### User Authentication & Authorization
-Secure access control with JWT-based authentication, role-based access control (RBAC), and comprehensive user management.
+## Local development and validation
 
-### Analytics & Reporting
-Generate detailed reports on operational performance, supply chain efficiency, and key performance indicators (KPIs) with customizable dashboards.
-
-## Technology Stack
-
-### Frontend
-- **Framework:** React 19.2.1 with TypeScript
-- **Build Tool:** Vite 7.1.7
-- **Styling:** Tailwind CSS 4.1.14
-- **UI Components:** Radix UI with shadcn/ui patterns
-- **State Management:** React Context API
-- **Routing:** Wouter 3.7.1
-- **Forms:** React Hook Form with Zod validation
-- **Charts:** Recharts 2.15.2
-- **Animations:** Framer Motion 12.23.22
-- **HTTP Client:** Axios 1.12.0
-- **Testing:** Vitest 2.1.4, Playwright 1.57.0
-
-### Backend & Infrastructure
-- **Backend Framework:** Node.js with Express
-- **Backend Hosting:** Render (https://render.com)
-- **Database:** MySQL with Aiven (https://aiven.io)
-- **ORM:** Drizzle ORM
-- **Authentication:** JWT-based REST API
-- **Frontend Hosting:** GitHub Pages
-
-### Backend
-- **Runtime:** Node.js (v22+)
-- **Framework:** Express 5.2.1
-- **Language:** TypeScript 5.9.3
-- **ORM:** Drizzle ORM 0.45.1
-- **Database:** MySQL/PostgreSQL compatible
-- **Authentication:** JWT (jsonwebtoken 9.0.3)
-- **Password Hashing:** bcryptjs 3.0.3
-- **CORS:** cors 2.8.5
-- **Validation:** Zod 4.3.5
-
-### Infrastructure
-- **Container Orchestration:** Kubernetes
-- **Infrastructure as Code:** Terraform (Azure)
-- **Cloud Providers:** Azure (AKS), AWS, On-premise
-- **CI/CD:** GitHub Actions
-- **Package Manager:** PNPM 10.4.1
-
-## Project Structure
-
-```
-imsop-app-frontend/
-├── client/                      # Frontend React application
-│   ├── src/
-│   │   ├── components/          # Reusable UI components
-│   │   │   └── ui/              # Radix UI component library
-│   │   ├── contexts/            # React Context providers
-│   │   ├── hooks/               # Custom React hooks
-│   │   ├── lib/                 # Utility functions and helpers
-│   │   ├── pages/               # Page components
-│   │   ├── __tests__/           # Component tests
-│   │   ├── App.tsx              # Main application component
-│   │   ├── main.tsx             # Entry point
-│   │   └── index.css            # Global styles
-│   ├── public/                  # Static assets
-│   └── index.html               # HTML template
-├── e2e/                         # End-to-end tests
-├── package.json                 # Project dependencies
-├── tsconfig.json                # Root TypeScript configuration
-├── vite.config.mts              # Vite configuration
-└── README.md                    # This file
-```
-
-## Additional Resources
-
-- [Design Document](./DESIGN_DOCUMENT.md) - System architecture and design patterns
-- [Requirements Specifications](./REQUIREMENTS_SPECIFICATIONS.md) - Functional and non-functional requirements
-- [API Documentation](./API_DOCUMENTATION.md) - Complete API reference
-- [System Diagrams](./SYSTEM_DIAGRAMS.md) - Architecture and data flow diagrams
-- [Implementation Guide](./IMPLEMENTATION_GUIDE.md) - Step-by-step implementation instructions
-- [Architecture Documentation](./ARCHITECTURE_DOCUMENTATION.md) - Professional architecture diagrams and specifications
-
-## 🛠️ Development Setup
-
-### Prerequisites
-- Node.js v22 or higher
-- MySQL 8.0 or higher
-- PNPM 10.4.1 or higher
-- Git
-
-### Quick Start (Development)
-
-```bash
-# 1. Set up development database
-cd ../imsop-app-backend && ./setup-dev-db.sh
-
-# 2. Copy environment file
-cp .env.dev .env
-
-# 3. Install dependencies
-pnpm install
-
-# 4. Start development server
+```sh
+pnpm install --frozen-lockfile
 pnpm dev
-```
-
-The application will be available at `http://localhost:5173` (frontend) and `http://localhost:3000` (backend).
-
-### Database Setup Scripts
-
-#### Development Database
-```bash
-cd ../imsop-app-backend && ./setup-dev-db.sh
-```
-
-Creates `imsop_dev` database with:
-- **Demo Users:**
-  - Admin: `admin@demo.local` / `demo-admin-password`
-  - Operator: `operator@demo.local` / `demo-operator-password`
-  - Analyst: `analyst@demo.local` / `demo-analyst-password`
-  - Demo: `demo@demo.local` / `demo-password`
-- **Sample Data:**
-  - 5 sample shipments
-  - 5 sample orders
-  - 8 telemetry readings
-  - 4 analytics events
-
-#### Test Database
-```bash
-cd ../imsop-app-backend && ./setup-test-db.sh
-```
-
-Creates `imsop_test` database for running tests.
-
-### Custom Database Credentials
-
-You can customize database credentials by setting environment variables:
-
-```bash
-export DB_HOST=localhost
-export DB_PORT=3306
-export DB_USER=your_user
-export DB_PASSWORD=your_password
-cd ../imsop-app-backend && ./setup-dev-db.sh
-```
-
-### Demo Accounts
-
-The login page includes quick-fill buttons for demo accounts:
-
-| Account | Email | Password | Role |
-|---------|-------|----------|------|
-| Admin | admin@demo.local | demo-admin-password | admin |
-| Operator | operator@demo.local | demo-operator-password | user |
-| Analyst | analyst@demo.local | demo-analyst-password | analyst |
-| Demo | demo@demo.local | demo-password | user |
-
-Click any demo account button on the login page to auto-fill credentials.
-
-### Environment Variables
-Create a `.env` file based on `.env.example`:
-
-```bash
-cp .env.example .env
-```
-
-Then configure the following variables:
-
-#### Frontend Configuration (`.env`)
-
-```bash
-# Backend API URL
-# For local development with local backend
-VITE_API_URL=http://localhost:3001
-
-# For local development with production backend
-# VITE_API_URL=https://imsop-api.152-70-22-84.sslip.io
-
-# Google Maps API (Optional - for map visualization)
-# Get your API key from: https://console.cloud.google.com/google/maps-apis
-# Required APIs: Maps JavaScript API, Places API, Geocoding API, Geometry API
-VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
-```
-
-#### Backend Configuration (`.env` in server directory)
-
-```bash
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=imsop_dev
-
-# API Configuration
-API_PORT=3001
-API_HOST=localhost
-
-# Authentication
-JWT_SECRET=dev-secret-key-change-in-production
-
-# CORS Configuration
-CORS_ORIGINS=*
-
-# Logging
-LOG_LEVEL=debug
-```
-
-**Important Notes:**
-- The frontend uses `VITE_API_URL` to connect to the backend API
-- In production (Vercel), requests use the same-origin `/api` proxy to Oracle
-- The Google Maps API key is optional. If not configured, the map component will display a placeholder message
-
-### Available Scripts
-
-```bash
-# Development
-pnpm dev              # Start the frontend development server
-
-# Building
-pnpm build            # Build for production
-
-# Testing
-pnpm test             # Run test suite
-pnpm e2e              # Run Playwright browser tests
-
-# Production
-pnpm start            # Preview the production frontend
-./deploy.sh           # Automated deployment script
-```
-
-### Troubleshooting
-
-**MySQL Connection Error**
-```bash
-# Ensure MySQL is running
-sudo service mysql start
-
-# Check MySQL status
-sudo service mysql status
-
-# Verify credentials
-mysql -h localhost -u root -p
-```
-
-**Port Already in Use**
-```bash
-# Change port in .env
-API_PORT=3001
-
-# Or kill process using port
-lsof -ti:3000 | xargs kill -9
-```
-
-**Database Setup Issues**
-```bash
-# Reset database
-mysql -u root -p -e "DROP DATABASE imsop_dev;"
-cd ../imsop-app-backend && ./setup-dev-db.sh
-```
-
-### Deployment Architecture
-
-The application uses a distributed deployment model:
-
-**Frontend (GitHub Pages)**
-- Automatically deployed on push to `main` branch
-- Static React app served from `https://druhustle.github.io/imsop-app-frontend/`
-- Configured to connect to the Oracle backend API
-
-**Backend (Oracle)**
-- Containerized backend gateway hosted at `https://imsop-api.152-70-22-84.sslip.io`
-- Handles authentication, data management, and business logic
-- Connected to Aiven MySQL database
-
-**Database (Aiven)**
-- MySQL database hosted on Aiven cloud
-- Secure connection from the Oracle backend
-- Managed backups and scaling
-
-**Development:**
-- Local Node.js server with local MySQL database
-- Run `./deploy.sh` for automated setup
-- See [Oracle backend operations](../imsop-app-backend/deploy/oracle/README.md) for deployment instructions
-
-### Next Steps
-
-1. Review [Architecture Documentation](./ARCHITECTURE_DOCUMENTATION.md)
-2. Check [API Documentation](./API_DOCUMENTATION.md)
-3. Read [Implementation Guide](./IMPLEMENTATION_GUIDE.md)
-4. Explore [System Diagrams](./SYSTEM_DIAGRAMS.md)
-5. Follow [Render Deployment Guide](./RENDER_DEPLOYMENT.md) for production setup
-
-## 🚀 Production Deployment
-
-### Using Deploy Script
-```bash
-export DATABASE_URL="mysql://user:password@host:port/db"
-export JWT_SECRET="your-secret-key"
-./deploy.sh
-```
-
-### Manual Deployment
-```bash
-# 1. Build application
+pnpm exec tsc --noEmit
+pnpm test
 pnpm build
-
-# 2. Set environment variables
-export NODE_ENV=production
-export DATABASE_URL="mysql://..."
-export JWT_SECRET="..."
-
-# 3. Start server
-pnpm start
+pnpm e2e
+pnpm audit --prod --audit-level=moderate
 ```
 
-### Configuring Google Maps API for Production (GitHub Pages)
+`pnpm build` includes retired-endpoint verification across lazy chunks. E2E starts its own preview on **4188** with server reuse disabled, preventing accidental tests of unrelated applications. Every production API response and provider failure is isolated in fixtures; no production writes or provider contacts are required.
 
-The Google Maps integration is optional but enhances the dashboard with interactive map visualizations.
+`VITE_BASE_PATH=/` builds for Vercel; the default `/imsop-app-frontend/` supports GitHub Pages. `VITE_API_URL` and the existing unified `api-origin.ts` resolution preserve first-party production proxy behavior. Brand URLs use Vite's base path. Optional Google Maps configuration remains `VITE_GOOGLE_MAPS_API_KEY`.
 
-#### Step 1: Get Google Maps API Key
-
-1. **Go to Google Cloud Console**
-   - Visit: https://console.cloud.google.com/google/maps-apis
-   - Create a new project or select an existing one
-
-2. **Enable Required APIs**
-   - Maps JavaScript API
-   - Places API
-   - Geocoding API
-   - Geometry API
-
-3. **Create API Key**
-   - Go to Credentials → Create Credentials → API key
-   - Copy the generated API key (format: `AIzaSyC...`)
-
-4. **Restrict API Key (Recommended)**
-   - Under "Application restrictions", select "HTTP referrers"
-   - Add: `https://druhustle.github.io/*`
-   - Under "API restrictions", select the 4 APIs above
-   - Click "Save"
-
-#### Step 2: Add to GitHub Repository Secrets
-
-1. **Navigate to Repository Settings**
-   - Go to: https://github.com/DruHustle/imsop-app-frontend/settings/secrets/actions
-
-2. **Create New Secret**
-   - Click "New repository secret"
-   - Name: `VITE_GOOGLE_MAPS_API_KEY` (must be exact)
-   - Secret: Paste your Google Maps API key
-   - Click "Add secret"
-
-#### Step 3: Deploy
-
-The GitHub Actions workflow is already configured to use the secret during build.
-
-**Automatic Deployment:**
-- Any push to `main` branch will trigger deployment with the API key
-
-**Manual Deployment:**
-1. Go to: https://github.com/DruHustle/imsop-app-frontend/actions
-2. Click "Deploy to GitHub Pages"
-3. Click "Run workflow"
-
-#### Step 4: Verify
-
-1. Wait for deployment to complete (~2-3 minutes)
-2. Visit: https://druhustle.github.io/imsop-app-frontend/
-3. Log in and check the Dashboard
-4. The "Global Activity Map" should now show an interactive map
-
-#### Troubleshooting
-
-**Map still shows placeholder:**
-- Verify secret name is exactly `VITE_GOOGLE_MAPS_API_KEY`
-- Check that all 4 APIs are enabled in Google Cloud Console
-- Ensure `https://druhustle.github.io/*` is in HTTP referrers
-- Check GitHub Actions logs for build errors
-
-**"This page can't load Google Maps correctly":**
-- Set up billing in Google Cloud Console (free tier: $200/month credit)
-- Verify API key restrictions aren't too strict
-
-**For Local Development:**
-Create a `.env` file:
-```bash
-VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
-```
-
-**Note:** The application works perfectly without the API key - you'll just see a placeholder message instead of the interactive map.
-
-## 📝 Contributing
-
-1. Create a feature branch (`git checkout -b feature/amazing-feature`)
-2. Commit changes (`git commit -m 'Add amazing feature'`)
-3. Push to branch (`git push origin feature/amazing-feature`)
-4. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📧 Support
-
-For support, email andrewgotora@yahoo.com or open an issue on GitHub.
-
-## 🙏 Acknowledgments
-
-- Built with React, Node.js, and TypeScript
-- UI components from Radix UI and shadcn/ui
-- Inspired by modern supply chain management practices
-
-## Production backend hosting
-
-The API runs on the shared Oracle VM **Software Engineering Backend** at
-`https://imsop-api.152-70-22-84.sslip.io`. Vercel proxies `/api/*` there and
-GitHub Pages builds use the same origin through `VITE_API_URL`. Local API
-overrides remain supported. The backend retains its existing managed PostgreSQL
-data and authentication controls. Its repository documents the independent
-Oracle deployment and rollback procedure.
-
-Vercel builds pin the Oracle API origin and `/` base path in `vercel.json`,
-overriding stale dashboard settings. Authentication, Operations and shared API
-clients use one origin resolver: same-origin on Vercel, Oracle on GitHub Pages,
-and configurable local development. Every build checks all JavaScript chunks
-for retired backend URLs. Run `pnpm verify:deployment` to repeat that check.
+[Verification evidence and measurements](verification/RESULTS.md) records exact local checks, screenshots, known limits and hosted-navigation reproduction. Local verification does not deploy either repository. Historical architecture/design documents describe earlier aspirations and must not be treated as integration evidence.

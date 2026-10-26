@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrainCircuit, Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
@@ -21,28 +27,28 @@ export default function ResetPassword() {
   useEffect(() => {
     // Get token from URL query params
     const urlParams = new URLSearchParams(window.location.search);
-    const tokenParam = urlParams.get('token');
+    const tokenParam = urlParams.get("token");
     setToken(tokenParam);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!token) {
       toast.error("Invalid reset token");
       return;
     }
-    
+
     if (password !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
-    
+
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
@@ -63,18 +69,18 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[url('/images/hero-bg.jpg')] bg-cover bg-center relative">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-        
-        <Card className="w-full max-w-md glass-panel border-white/10 relative z-10 animate-in fade-in zoom-in duration-500">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+        <Card className="w-full max-w-md glass-panel border-border relative z-10 animate-in fade-in zoom-in duration-500">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-display font-bold tracking-wide">Invalid Link</CardTitle>
+            <h1 className="text-2xl font-display font-bold tracking-wide">
+              Invalid Link
+            </h1>
             <CardDescription className="text-muted-foreground">
               This password reset link is invalid or has expired.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
+            <Button
               onClick={() => navigate("/forgot-password")}
               className="w-full bg-primary hover:bg-primary/80"
             >
@@ -88,17 +94,17 @@ export default function ResetPassword() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[url('/images/hero-bg.jpg')] bg-cover bg-center relative">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-        
-        <Card className="w-full max-w-md glass-panel border-white/10 relative z-10 animate-in fade-in zoom-in duration-500">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+        <Card className="w-full max-w-md glass-panel border-border relative z-10 animate-in fade-in zoom-in duration-500">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
                 <CheckCircle className="w-7 h-7 text-green-500" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-display font-bold tracking-wide">Password Reset!</CardTitle>
+            <h1 className="text-2xl font-display font-bold tracking-wide">
+              Password Reset!
+            </h1>
             <CardDescription className="text-muted-foreground">
               Your password has been successfully reset. Redirecting to login...
             </CardDescription>
@@ -109,17 +115,17 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[url('/images/hero-bg.jpg')] bg-cover bg-center relative">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      
-      <Card className="w-full max-w-md glass-panel border-white/10 relative z-10 animate-in fade-in zoom-in duration-500">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      <Card className="w-full max-w-md glass-panel border-border relative z-10 animate-in fade-in zoom-in duration-500">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 rounded bg-primary flex items-center justify-center shadow-[0_0_20px_var(--primary)]">
+            <div className="w-12 h-12 rounded bg-primary flex items-center justify-center ">
               <BrainCircuit className="w-7 h-7 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-display font-bold tracking-wide">Reset Password</CardTitle>
+          <h1 className="text-2xl font-display font-bold tracking-wide">
+            Reset Password
+          </h1>
           <CardDescription className="text-muted-foreground">
             Enter your new password below
           </CardDescription>
@@ -135,21 +141,26 @@ export default function ResetPassword() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter new password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 bg-background/50 border-white/20"
+                  onChange={e => setPassword(e.target.value)}
+                  className="pl-10 pr-10 bg-background/50 border-border"
                   required
                   minLength={6}
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <div className="relative">
@@ -159,23 +170,23 @@ export default function ResetPassword() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Confirm new password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 bg-background/50 border-white/20"
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  className="pl-10 bg-background/50 border-border"
                   required
                 />
               </div>
             </div>
-            
-            <Button 
+
+            <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-primary hover:bg-primary/80 text-primary-foreground shadow-[0_0_15px_var(--primary)]"
+              className="w-full bg-primary hover:bg-primary/80 text-primary-foreground "
             >
               {isLoading ? "Resetting..." : "Reset Password"}
             </Button>
           </form>
-          
-          <Button 
+
+          <Button
             variant="ghost"
             onClick={() => navigate("/")}
             className="w-full"
