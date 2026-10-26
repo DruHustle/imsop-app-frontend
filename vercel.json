@@ -2,6 +2,14 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/health",
+      "destination": "https://imsop-api.152-70-22-84.sslip.io/health"
+    },
+    {
+      "source": "/ready",
+      "destination": "https://imsop-api.152-70-22-84.sslip.io/ready"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://imsop-api.152-70-22-84.sslip.io/api/:path*"
     },
@@ -33,6 +41,24 @@
         {
           "key": "Cache-Control",
           "value": "private, no-store"
+        }
+      ]
+    },
+    {
+      "source": "/ready",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/health",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
         }
       ]
     },
