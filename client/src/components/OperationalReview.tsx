@@ -225,6 +225,7 @@ export function OperationalReview() {
                   <label className="field">
                     Assign to
                     <select
+                      aria-label="Assign to"
                       disabled={busy}
                       value={selected.assigneeId ?? ""}
                       onChange={e =>

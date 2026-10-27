@@ -38,7 +38,17 @@ describe("recovery credentials", () => {
   });
 });
 
-it('notifies a fresh credential capture when another recovery link arrives in the same document',()=>{
- history.replaceState(null,'','/#/reset-password?token=one.two.three');let captures=0;const receive=()=>captures++;window.addEventListener('imsop:recovery-link',receive);
- expect(captureResetToken()).toBe('one.two.three');forgetResetToken();history.replaceState(null,'','/#/reset-password?token=other.reset.link');expect(captureResetToken()).toBe('other.reset.link');expect(captures).toBe(2);expect(location.href).not.toContain('token=');window.removeEventListener('imsop:recovery-link',receive);forgetResetToken();
+it("notifies a fresh credential capture when another recovery link arrives in the same document", () => {
+  history.replaceState(null, "", "/#/reset-password?token=one.two.three");
+  let captures = 0;
+  const receive = () => captures++;
+  window.addEventListener("imsop:recovery-link", receive);
+  expect(captureResetToken()).toBe("one.two.three");
+  forgetResetToken();
+  history.replaceState(null, "", "/#/reset-password?token=other.reset.link");
+  expect(captureResetToken()).toBe("other.reset.link");
+  expect(captures).toBe(2);
+  expect(location.href).not.toContain("token=");
+  window.removeEventListener("imsop:recovery-link", receive);
+  forgetResetToken();
 });

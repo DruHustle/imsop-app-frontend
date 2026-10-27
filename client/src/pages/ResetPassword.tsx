@@ -27,15 +27,23 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [token,setToken] = useState(captureResetToken);
-  const linkVersion=useRef(0);
+  const [token, setToken] = useState(captureResetToken);
+  const linkVersion = useRef(0);
   const [error, setError] = useState("");
 
-  useEffect(()=>{
-    const receive=()=>{linkVersion.current++;setToken(captureResetToken());setSuccess(false);setError('');setPassword('');setConfirmPassword('');setIsLoading(false);};
-    window.addEventListener('imsop:recovery-link',receive);
-    return()=>window.removeEventListener('imsop:recovery-link',receive);
-  },[]);
+  useEffect(() => {
+    const receive = () => {
+      linkVersion.current++;
+      setToken(captureResetToken());
+      setSuccess(false);
+      setError("");
+      setPassword("");
+      setConfirmPassword("");
+      setIsLoading(false);
+    };
+    window.addEventListener("imsop:recovery-link", receive);
+    return () => window.removeEventListener("imsop:recovery-link", receive);
+  }, []);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -54,13 +62,13 @@ export default function ResetPassword() {
       return;
     }
 
-    const submittedVersion=linkVersion.current;
+    const submittedVersion = linkVersion.current;
     setError("");
     setIsLoading(true);
 
     try {
       const result = await resetPassword(token, password);
-      if(submittedVersion!==linkVersion.current)return;
+      if (submittedVersion !== linkVersion.current) return;
       if (result.success) {
         forgetResetToken();
         setSuccess(true);
@@ -70,12 +78,12 @@ export default function ResetPassword() {
         );
       }
     } catch (error) {
-      if(submittedVersion!==linkVersion.current)return;
+      if (submittedVersion !== linkVersion.current) return;
       setError(
         "Could not reach the server. Your link is retained here; retry."
       );
     } finally {
-      if(submittedVersion===linkVersion.current)setIsLoading(false);
+      if (submittedVersion === linkVersion.current) setIsLoading(false);
     }
   };
 
