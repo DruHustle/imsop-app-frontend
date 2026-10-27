@@ -19,7 +19,7 @@ export default function Settings() {
       />
       <div className="max-w-3xl space-y-5">
         <Panel title="Appearance">
-          <div className="preference-row">
+          <div className="preference-row theme-preference">
             <div>
               <h3>Theme</h3>
               <p className="muted">
