@@ -1,3 +1,50 @@
+import { z } from "zod";
+const sourceId = z.union([
+  z.number().int().positive(),
+  z.string().regex(/^[1-9]\d*$/),
+]);
+const optionalText = z.string().max(1000).nullable().optional();
+const optionalDate = z
+  .string()
+  .datetime({ offset: true })
+  .nullable()
+  .optional();
+const shipmentRead = z
+  .object({
+    id: sourceId,
+    trackingNumber: z.string().trim().min(1).max(100),
+    origin: optionalText,
+    destination: optionalText,
+    status: optionalText,
+    carrier: optionalText,
+    transportMode: optionalText,
+    createdAt: optionalDate,
+    estimatedArrival: optionalDate,
+    actualArrival: optionalDate,
+    promisedArrival: optionalDate,
+    observedAt: optionalDate,
+    receivedAt: optionalDate,
+    provider: optionalText,
+    latitude: z.union([z.string(), z.number()]).nullable().optional(),
+    longitude: z.union([z.string(), z.number()]).nullable().optional(),
+  })
+  .passthrough();
+const orderRead = z
+  .object({
+    id: sourceId,
+    orderNumber: z.string().trim().min(1).max(100),
+    currency: z
+      .string()
+      .regex(/^[A-Z]{3}$/)
+      .nullable()
+      .optional(),
+    totalAmount: z
+      .union([z.string().regex(/^-?\d+(?:\.\d+)?$/), z.number().finite()])
+      .nullable()
+      .optional(),
+    createdAt: optionalDate,
+  })
+  .passthrough();
 import { User } from "./auth-types";
 export type Mode = "live" | "demo";
 export type SourceStatus = "loading" | "ready" | "forbidden" | "unavailable";
@@ -75,7 +122,12 @@ const coordinate = (v: unknown, max: number) =>
     ? null
     : Number(v);
 export function normalizeShipment(raw: Record<string, unknown>): Shipment {
-  if (!/^[1-9]\d*$/.test(String(raw.id)) || typeof raw.trackingNumber !== "string" || !raw.trackingNumber.trim())
+  raw = shipmentRead.parse(raw);
+  if (
+    !/^[1-9]\d*$/.test(String(raw.id)) ||
+    typeof raw.trackingNumber !== "string" ||
+    !raw.trackingNumber.trim()
+  )
     throw new Error("Invalid shipment identity");
   const mode = String(raw.transportMode ?? "").toLowerCase();
   return {
@@ -109,6 +161,7 @@ export function normalizeShipment(raw: Record<string, unknown>): Shipment {
   };
 }
 export function normalizeOrder(raw: Record<string, unknown>): OperationalOrder {
+  raw = orderRead.parse(raw);
   if (!/^[1-9]\d*$/.test(String(raw.id)) || !raw.orderNumber)
     throw new Error("Invalid Node operational order");
   return {
@@ -118,7 +171,10 @@ export function normalizeOrder(raw: Record<string, unknown>): OperationalOrder {
       raw.customerId === null || raw.customerId === undefined
         ? null
         : String(raw.customerId),
-    currency: typeof raw.currency === "string" && /^[A-Z]{3}$/.test(raw.currency) ? raw.currency : null,
+    currency:
+      typeof raw.currency === "string" && /^[A-Z]{3}$/.test(raw.currency)
+        ? raw.currency
+        : null,
     totalAmount:
       raw.totalAmount === null || raw.totalAmount === undefined
         ? null

@@ -125,7 +125,9 @@ export default function Orders() {
                       <td>{o.customerId ?? "Not supplied"}</td>
                       <td>
                         {o.totalAmount ?? "Not supplied"}
-                        <span className="freshness">Currency not supplied</span>
+                        <span className="freshness">
+                          {o.currency ?? "Currency unknown"}
+                        </span>
                       </td>
                       <td>{formatTime(o.createdAt)}</td>
                       <td>
@@ -147,7 +149,8 @@ export default function Orders() {
                   </div>
                   <p className="muted text-xs mt-3">
                     Customer {o.customerId ?? "not supplied"} · Amount{" "}
-                    {o.totalAmount ?? "not supplied"} ({o.currency ?? "currency unknown"})
+                    {o.totalAmount ?? "not supplied"} (
+                    {o.currency ?? "currency unknown"})
                   </p>
                   <div className="card-bottom mt-3">
                     <span>{formatTime(o.createdAt)}</span>
@@ -201,11 +204,9 @@ export default function Orders() {
       </div>
       <Panel title="Purchase orders are a separate service">
         <p className="muted text-xs">
-          The .NET supply-chain service uses PurchaseOrder GUIDs, organization
-          and supplier relationships, and an ApiResponse envelope. It exposes no
-          authorized list or supplier/organization selection workflow here.
-          Purchase-order creation and cross-service associations are unavailable
-          in this workspace.
+          Purchase intake is available through the validated purchasing API. A
+          purchasing form remains unavailable until complete item selection and
+          receiving workflows are supported. See Help for source details.
         </p>
       </Panel>
     </>

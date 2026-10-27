@@ -112,9 +112,7 @@ function Detail({ kind, id, tracking = false }: Props) {
         ← Return to filtered {kind}
       </Link>
       <PageHeader
-        eyebrow={
-          kind === "shipments" ? "Shipment detail" : "Node operational order"
-        }
+        eyebrow={kind === "shipments" ? "Shipment detail" : "Operational order"}
         title={
           shipment?.trackingNumber ?? order?.orderNumber ?? "Record detail"
         }
@@ -276,8 +274,8 @@ function Detail({ kind, id, tracking = false }: Props) {
                       <div>
                         <dt>Source amount</dt>
                         <dd>
-                          {order.totalAmount ?? "Not supplied"} · Currency not
-                          supplied
+                          {order.totalAmount ?? "Not supplied"} ·{" "}
+                          {order.currency ?? "Currency unknown"}
                         </dd>
                       </div>
                       <div>
@@ -293,7 +291,7 @@ function Detail({ kind, id, tracking = false }: Props) {
               <p className="muted text-xs">
                 {shipment
                   ? "This shipment contract has no authorized order or document association."
-                  : "This Node order contract supplies no line items, supplier, currency or shipment association."}
+                  : "Line items, supplier and shipment associations are not supplied."}
               </p>
               <Link
                 className="record-link inline-block mt-3 text-xs"

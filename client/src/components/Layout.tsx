@@ -237,7 +237,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <span>
             {mode === "demo"
               ? "Demonstration environment"
-              : "Authorized database reads"}
+              : "Workspace operations"}
           </span>
         </footer>
       </div>

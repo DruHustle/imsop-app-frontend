@@ -1,8 +1,34 @@
-export function extractIdentifiers(question:string,known:string[]=[]):string[] {
- const escaped=(value:string)=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
- const exact=known.filter(id=>new RegExp(`(^|[^a-zA-Z0-9_-])${escaped(id)}(?=$|[^a-zA-Z0-9_-])`,'i').test(question));
- const candidates=question.match(/\b[A-Z0-9][A-Z0-9_.:-]*[0-9][A-Z0-9_.:-]*\b/gi)??[];
- return Array.from(new Map([...exact,...candidates,...(question.match(/\b(?:SHP|ORD)-[A-Z0-9_-]+\b/gi)??[])].map(id=>[id.toLowerCase(),id])).values()).slice(0,10);
+export function extractIdentifiers(
+  question: string,
+  known: string[] = []
+): string[] {
+  const exact = known.filter(id => {
+    const text = question.toLowerCase(),
+      identity = id.toLowerCase();
+    let offset = text.indexOf(identity);
+    while (offset >= 0) {
+      const before = text[offset - 1],
+        after = text[offset + identity.length];
+      if (
+        (!before || !/[a-z0-9_-]/i.test(before)) &&
+        (!after || !/[a-z0-9_-]/i.test(after))
+      )
+        return true;
+      offset = text.indexOf(identity, offset + 1);
+    }
+    return false;
+  });
+  const candidates =
+    question.match(/\b[A-Z0-9][A-Z0-9_.:-]*[0-9][A-Z0-9_.:-]*\b/gi) ?? [];
+  return Array.from(
+    new Map(
+      [
+        ...exact,
+        ...candidates,
+        ...(question.match(/\b(?:SHP|ORD)-[A-Z0-9_-]+\b/gi) ?? []),
+      ].map(id => [id.toLowerCase(), id])
+    ).values()
+  ).slice(0, 10);
 }
 import { Source } from "@/contexts/DataContext";
 import {
@@ -34,26 +60,70 @@ export function answerQuestion(
     links,
     source,
   });
-  const tokens=extractIdentifiers(question,[...shipments.items.map(s=>s.trackingNumber),...orders.items.map(o=>o.orderNumber)]);
-  if(tokens.length) {
-    const links:Answer['links']=[], descriptions:string[]=[];
-    for(const token of tokens) {
-      const matches=shipments.status==='ready'?shipments.items.filter(s=>s.trackingNumber.toLowerCase()===token.toLowerCase()):[];
-      const matchesOrders=orders.status==='ready'?orders.items.filter(o=>o.orderNumber.toLowerCase()===token.toLowerCase()):[];
-      if(matches.length+matchesOrders.length>1) {descriptions.push(`${token}: several sources use this identifier. Open a stable record link to choose the intended record.`);continue;}
-      const item=matches[0],order=matchesOrders[0];
-      if(item) {
-        descriptions.push(`${item.trackingNumber}: ${item.status}. ${item.origin} → ${item.destination}. Carrier: ${item.carrier}; mode: ${item.transportMode}. ETA: ${formatTime(item.estimatedArrival)}. Latest event observation: ${formatTime(item.observedAt)}. Provider: ${item.provider ?? 'not supplied'}. Received: ${formatTime(item.receivedAt)}.`);
-        links.push({label:`Open ${item.trackingNumber}`,href:`/supply-chain/shipments/${item.id}`});
-      } else if(order) {
-        descriptions.push(`${order.orderNumber}: ${order.status}. Amount: ${order.totalAmount ?? 'not supplied'}; ${order.currency ?? 'currency not supplied'}. Created: ${formatTime(order.createdAt)}. Supplier and shipment associations are unavailable.`);
-        links.push({label:`Open ${order.orderNumber}`,href:`/supply-chain/orders/${order.id}`});
+  const tokens = extractIdentifiers(question, [
+    ...shipments.items.map(s => s.trackingNumber),
+    ...orders.items.map(o => o.orderNumber),
+  ]);
+  if (tokens.length) {
+    const links: Answer["links"] = [],
+      descriptions: string[] = [];
+    for (const token of tokens) {
+      const matches =
+        shipments.status === "ready"
+          ? shipments.items.filter(
+              s => s.trackingNumber.toLowerCase() === token.toLowerCase()
+            )
+          : [];
+      const matchesOrders =
+        orders.status === "ready"
+          ? orders.items.filter(
+              o => o.orderNumber.toLowerCase() === token.toLowerCase()
+            )
+          : [];
+      if (matches.length + matchesOrders.length > 1) {
+        descriptions.push(
+          `${token}: several sources use this identifier. Open a stable record link to choose the intended record.`
+        );
+        continue;
+      }
+      const item = matches[0],
+        order = matchesOrders[0];
+      if (item) {
+        descriptions.push(
+          `${item.trackingNumber}: ${item.status}. ${item.origin} → ${item.destination}. Carrier: ${item.carrier}; mode: ${item.transportMode}. ETA: ${formatTime(item.estimatedArrival)}. Latest event observation: ${formatTime(item.observedAt)}. Provider: ${item.provider ?? "not supplied"}. Received: ${formatTime(item.receivedAt)}.`
+        );
+        links.push({
+          label: `Open ${item.trackingNumber}`,
+          href: `/supply-chain/shipments/${item.id}`,
+        });
+      } else if (order) {
+        descriptions.push(
+          `${order.orderNumber}: ${order.status}. Amount: ${order.totalAmount ?? "not supplied"}; ${order.currency ?? "currency not supplied"}. Created: ${formatTime(order.createdAt)}. Supplier and shipment associations are unavailable.`
+        );
+        links.push({
+          label: `Open ${order.orderNumber}`,
+          href: `/supply-chain/orders/${order.id}`,
+        });
       } else {
-        const message=/^ORD-/i.test(token)&&orders.status==='forbidden'?'Orders are unavailable for your role.':shipments.status!=='ready'?'The shipment source is unavailable. Retry the source read.':`${token} was not found in the permitted context. I cannot infer its status or location.`;
-        descriptions.push(message);links.push({label:'Search shipments',href:'/supply-chain/shipments'});
+        const message =
+          /^ORD-/i.test(token) && orders.status === "forbidden"
+            ? "Orders are unavailable for your role."
+            : shipments.status !== "ready"
+              ? "The shipment source is unavailable. Retry the source read."
+              : `${token} was not found in the permitted context. I cannot infer its status or location.`;
+        descriptions.push(message);
+        links.push({
+          label: "Search shipments",
+          href: "/supply-chain/shipments",
+        });
       }
     }
-    return result((tokens.length>1?'Comparison of recorded status, route and ETA. ':'')+descriptions.join('\n\n'),links);
+    return result(
+      (tokens.length > 1
+        ? "Comparison of recorded status, route and ETA. "
+        : "") + descriptions.join("\n\n"),
+      links
+    );
   }
   if (/order|\bORD-/i.test(question) && orders.status !== "ready")
     return result(

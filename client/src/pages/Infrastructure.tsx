@@ -139,21 +139,22 @@ function HealthWorkspace() {
       {integrations ? (
         <>
           {mode === "live" && <IntegrationRegistry />}
-          {mode === "demo" && <Panel title="Connector configuration">
-            <EmptyState
-              title={
-                mode === "demo"
-                  ? "Demonstration connector examples"
-                  : "Connector status not configured"
-              }
-              description={
-                mode === "demo"
-                  ? "SAP, carrier and notification connectors are examples only. No accounts are connected by this screen."
-                  : "This application exposes no authorized connector-status endpoint. Provider connectivity and last successful sync are unknown."
-              }
-            />
-          </Panel>
-          }
+          {mode === "demo" && (
+            <Panel title="Connector configuration">
+              <EmptyState
+                title={
+                  mode === "demo"
+                    ? "Demonstration connector examples"
+                    : "Connector status not configured"
+                }
+                description={
+                  mode === "demo"
+                    ? "SAP, carrier and notification connectors are examples only. No accounts are connected by this screen."
+                    : "This application exposes no authorized connector-status endpoint. Provider connectivity and last successful sync are unknown."
+                }
+              />
+            </Panel>
+          )}
           <Panel title="Logistics event ingestion">
             <StatusBadge value="Unknown" />
             <p className="muted text-sm mt-4">

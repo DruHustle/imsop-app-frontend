@@ -330,7 +330,7 @@ test("Assistant cancellation prevents a late answer and restores the question", 
 }) => {
   await loginDemo(page);
   await navigate(page, "Assistant");
-  await page.clock.install({time:new Date("2026-10-27T09:00:00Z")});
+  await page.clock.install({ time: new Date("2026-10-27T09:00:00Z") });
   await page.clock.pauseAt(new Date("2026-10-27T09:01:00Z"));
   await page.getByLabel("Your question").fill("Look up SHP-8829");
   await page.getByRole("button", { name: "Send", exact: true }).click();

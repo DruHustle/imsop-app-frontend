@@ -70,16 +70,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [getSvc]);
 
   useEffect(() => {
-    const expire=()=>{
-      if (!user || safeLocalStorage.getItem('imsop_token')?.startsWith('mock_')) return;
-      safeSessionStorage.setItem('imsop:return-to',window.location.hash);
-      safeSessionStorage.setItem('imsop:session-expired','true');
-      clearSensitiveState(user,true); setUser(null);
-      toast.error('Your session expired. Sign in again to continue.');
+    const expire = () => {
+      if (!user || safeLocalStorage.getItem("imsop_token")?.startsWith("mock_"))
+        return;
+      safeSessionStorage.setItem("imsop:return-to", window.location.hash);
+      safeSessionStorage.setItem("imsop:session-expired", "true");
+      clearSensitiveState(user, true);
+      setUser(null);
+      toast.error("Your session expired. Sign in again to continue.");
     };
-    window.addEventListener('imsop:session-expired',expire);
-    return ()=>window.removeEventListener('imsop:session-expired',expire);
-  },[user]);
+    window.addEventListener("imsop:session-expired", expire);
+    return () => window.removeEventListener("imsop:session-expired", expire);
+  }, [user]);
 
   const handleAuthAction = useCallback(
     async (action: () => Promise<AuthResponse>) => {
@@ -105,19 +107,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       login: (e: string, p: string) =>
         handleAuthAction(() => getSvc(e).login(e, p)),
       logout: async () => {
-        const service=getSvc();
-        clearSensitiveState(user,true); setUser(null);
-        try { await service.logout(); }
-        catch { toast.error('Sign out could not be confirmed. This device is locked out locally; signing in will retry server sign out.'); }
+        const service = getSvc();
+        clearSensitiveState(user, true);
+        setUser(null);
+        try {
+          await service.logout();
+        } catch {
+          toast.error(
+            "Sign out could not be confirmed. This device is locked out locally; signing in will retry server sign out."
+          );
+        }
       },
       register: (e: string, p: string, n: string) =>
         handleAuthAction(() => getSvc(e).register(e, p, n)),
-      requestPasswordReset: (e: string) => apiAuthService.requestPasswordReset(e),
+      requestPasswordReset: (e: string) =>
+        apiAuthService.requestPasswordReset(e),
       resetPassword: async (t: string, p: string) => {
-        const result=await apiAuthService.resetPassword(t,p);
-        if(result.success) {
-          clearSensitiveState(user,true); safeLocalStorage.removeItem('imsop_token'); setUser(null);
-          try { await apiAuthService.logout(); } catch { toast.error('Password reset. Server sign out is unconfirmed; sign in will retry it.'); }
+        const result = await apiAuthService.resetPassword(t, p);
+        if (result.success) {
+          clearSensitiveState(user, true);
+          safeLocalStorage.removeItem("imsop_token");
+          setUser(null);
+          try {
+            await apiAuthService.logout();
+          } catch {
+            toast.error(
+              "Password reset. Server sign out is unconfirmed; sign in will retry it."
+            );
+          }
         }
         return result;
       },
@@ -126,9 +143,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           ? handleAuthAction(() => getSvc().updateProfile(user.id, u))
           : Promise.resolve({ success: false, error: "Not authenticated" }),
       changePassword: async (c: string, n: string) => {
-        if(!user)return {success:false,error:'Not authenticated'};
-        const service=getSvc(),result=await service.changePassword(user.id,c,n);
-        if(result.success && service===apiAuthService){clearSensitiveState(user,true);setUser(null);toast.info('Password changed. Sign in again.');}
+        if (!user) return { success: false, error: "Not authenticated" };
+        const service = getSvc(),
+          result = await service.changePassword(user.id, c, n);
+        if (result.success && service === apiAuthService) {
+          clearSensitiveState(user, true);
+          setUser(null);
+          toast.info("Password changed. Sign in again.");
+        }
         return result;
       },
     }),

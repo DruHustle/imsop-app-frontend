@@ -168,11 +168,11 @@ export default function AnalyticsPage() {
           </Panel>
           <Panel title="How on-time performance is calculated">
             <p className="muted text-xs">
-              Denominator: delivered shipments with both the original promise and actual
-              arrival timestamps. Numerator: eligible shipments whose actual
-              arrival is at or before the earliest retained provider estimate. Rate = numerator ÷
-              denominator. Missing dates are excluded; percentages are never
-              averaged.
+              Denominator: delivered shipments with both the original promise
+              and actual arrival timestamps. Numerator: eligible shipments whose
+              actual arrival is at or before the earliest retained provider
+              estimate. Rate = numerator ÷ denominator. Missing dates are
+              excluded; percentages are never averaged.
             </p>
             <p className="muted text-xs mt-4">
               Filters use shipment creation dates (UTC), not event occurrence

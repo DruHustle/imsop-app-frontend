@@ -1,15 +1,23 @@
-
-import { defineConfig } from 'vite';
-import tailwindcss from '@tailwindcss/vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
 import path from "path";
 
-const basePath = process.env.VITE_BASE_PATH || '/imsop-app-frontend/';
+const basePath = process.env.VITE_BASE_PATH || "/imsop-app-frontend/";
 
-const isolatedProxy = process.env.IMSOP_SYSTEM_API === 'http://127.0.0.1:18067'
-  ? Object.fromEntries(['/api','/supply-chain','/health','/ready','/version'].map(prefix=>[prefix,{target:process.env.IMSOP_SYSTEM_API,changeOrigin:false}])) : undefined;
+const isolatedProxy =
+  process.env.IMSOP_SYSTEM_API === "http://127.0.0.1:18067"
+    ? Object.fromEntries(
+        ["/api", "/supply-chain", "/health", "/ready", "/version"].map(
+          prefix => [
+            prefix,
+            { target: process.env.IMSOP_SYSTEM_API, changeOrigin: false },
+          ]
+        )
+      )
+    : undefined;
 export default defineConfig({
-  preview: {proxy:isolatedProxy},
+  preview: { proxy: isolatedProxy },
   plugins: [react(), tailwindcss()],
   base: basePath,
   resolve: {
@@ -27,8 +35,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          charts: ['recharts'],
+          vendor: ["react", "react-dom"],
+          charts: ["recharts"],
         },
       },
     },

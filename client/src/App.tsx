@@ -49,8 +49,18 @@ function LegacyRedirect({ href }: { href: string }) {
 function WorkspaceRouter() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const [location] = useWorkspaceLocation();
-  if (location === "/reset-password") return <Suspense fallback={loading}><ResetPassword /></Suspense>;
-  if (location === "/forgot-password") return <Suspense fallback={loading}><ForgotPassword /></Suspense>;
+  if (location === "/reset-password")
+    return (
+      <Suspense fallback={loading}>
+        <ResetPassword />
+      </Suspense>
+    );
+  if (location === "/forgot-password")
+    return (
+      <Suspense fallback={loading}>
+        <ForgotPassword />
+      </Suspense>
+    );
   if (isLoading) return loading;
   if (!isAuthenticated)
     return (

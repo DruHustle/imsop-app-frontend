@@ -176,7 +176,9 @@ test("live assistant uses permitted records and infrastructure remains honestly 
     .getByRole("button", { name: "Notifications", exact: true })
     .click();
   await expect(
-    page.getByText("In-app review notifications · External delivery unavailable")
+    page.getByText(
+      "In-app review notifications · External delivery unavailable"
+    )
   ).toBeVisible();
 });
 test("client report export requires the backend report permission check", async ({

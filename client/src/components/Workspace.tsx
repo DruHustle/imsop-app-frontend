@@ -181,7 +181,14 @@ export function SourceNote({
         {mode === "live" &&
           ` · Complete matching selection · Last read: ${formatTime(lastShipmentReadAt)}`}
       </span>
-      <Button variant="ghost" size="sm" onClick={refresh} aria-label="Refresh workspace records"><RefreshCw size={14} /> Refresh</Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={refresh}
+        aria-label="Refresh workspace records"
+      >
+        <RefreshCw size={14} /> Refresh
+      </Button>
     </div>
   );
 }

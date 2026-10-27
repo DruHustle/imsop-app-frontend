@@ -59,7 +59,12 @@ export default function Register() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <p id="password-policy" className="text-sm text-muted-foreground mb-4">Use 12–128 characters for your password.</p>
+          <p
+            id="password-policy"
+            className="text-sm text-muted-foreground mb-4"
+          >
+            Use 12–128 characters for your password.
+          </p>
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>

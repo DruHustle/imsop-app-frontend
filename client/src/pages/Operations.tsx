@@ -74,23 +74,29 @@ export default function Operations() {
         title="Shipments"
         description="Find a shipment, review its latest observation, and decide what needs attention."
         actions={
-          <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={refresh}>Refresh</Button><Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus size={15} />
-                Connect shipment source
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogTitle>Shipment integration required</DialogTitle>
-              <DialogDescription>
-                Production shipment creation is not supported by this
-                application. Authorized logistics webhooks populate the shipment
-                store. Ask your integration administrator to configure the
-                existing logistics event contract before onboarding shipments.
-              </DialogDescription>
-            </DialogContent>
-          </Dialog></div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={refresh}>
+              Refresh
+            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus size={15} />
+                  Connect shipment source
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogTitle>Shipment integration required</DialogTitle>
+                <DialogDescription>
+                  Production shipment creation is not supported by this
+                  application. Authorized logistics webhooks populate the
+                  shipment store. Ask your integration administrator to
+                  configure the existing logistics event contract before
+                  onboarding shipments.
+                </DialogDescription>
+              </DialogContent>
+            </Dialog>
+          </div>
         }
       />
       <SourceNote

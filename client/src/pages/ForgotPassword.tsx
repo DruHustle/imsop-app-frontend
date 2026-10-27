@@ -53,12 +53,14 @@ export default function ForgotPassword() {
               Check Your Email
             </h1>
             <CardDescription className="text-muted-foreground">
-              If an eligible account exists for {email}, a reset link has been requested. Delivery may take a few minutes.
+              If an eligible account exists for {email}, a reset link has been
+              requested. Delivery may take a few minutes.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-center text-muted-foreground">
-              A request does not confirm email delivery. Check spam, then retry if no link arrives. Demo accounts do not receive recovery emails.
+              A request does not confirm email delivery. Check spam, then retry
+              if no link arrives. Demo accounts do not receive recovery emails.
             </p>
             <Button
               variant="outline"

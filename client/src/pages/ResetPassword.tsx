@@ -11,7 +11,11 @@ import { Label } from "@/components/ui/label";
 import { BrainCircuit, Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { captureResetToken, forgetResetToken, PASSWORD_GUIDANCE } from "@/lib/recovery";
+import {
+  captureResetToken,
+  forgetResetToken,
+  PASSWORD_GUIDANCE,
+} from "@/lib/recovery";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
@@ -53,12 +57,15 @@ export default function ResetPassword() {
         forgetResetToken();
         setSuccess(true);
         toast.success("Password reset successful!");
-
       } else {
-        setError(result.error || "Could not reset your password. You can retry.");
+        setError(
+          result.error || "Could not reset your password. You can retry."
+        );
       }
     } catch (error) {
-      setError("Could not reach the server. Your link is retained here; retry.");
+      setError(
+        "Could not reach the server. Your link is retained here; retry."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +80,9 @@ export default function ResetPassword() {
               Invalid Link
             </h1>
             <CardDescription className="text-muted-foreground">
-              Reopen the link from your email, or request a new link. Recovery links are removed from the address bar and are not retained after reload.
+              Reopen the link from your email, or request a new link. Recovery
+              links are removed from the address bar and are not retained after
+              reload.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -106,7 +115,11 @@ export default function ResetPassword() {
               Your password has been reset. Sign in with your new password.
             </CardDescription>
           </CardHeader>
-          <CardContent><Button className="w-full" onClick={() => navigate("/")}>Sign in</Button></CardContent>
+          <CardContent>
+            <Button className="w-full" onClick={() => navigate("/")}>
+              Sign in
+            </Button>
+          </CardContent>
         </Card>
       </div>
     );
@@ -129,8 +142,14 @@ export default function ResetPassword() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <p id="password-policy" className="text-sm text-muted-foreground">{PASSWORD_GUIDANCE}</p>
-          {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+          <p id="password-policy" className="text-sm text-muted-foreground">
+            {PASSWORD_GUIDANCE}
+          </p>
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="password">New Password</Label>
