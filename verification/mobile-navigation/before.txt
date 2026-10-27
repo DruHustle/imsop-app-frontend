@@ -1,51 +1,51 @@
-[1A[2K[2m[WebServer] [22m(node:70908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
-[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:70908) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
-[1A[2K[2m[WebServer] [22m(node:70934) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
-[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:70934) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
-[1A[2K[2m[WebServer] [22mnode_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js (400:0): A comment
-[2m[WebServer] [22m
-[2m[WebServer] [22m"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
-[2m[WebServer] [22m
-[2m[WebServer] [22min "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+[WebServer] node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js (400:0): A comment
+[WebServer]
+[WebServer] "// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+[WebServer]
+[WebServer] in "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
 
-[1A[2K[2m[WebServer] [22mnode_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js (74:0): A comment
-[2m[WebServer] [22m
-[2m[WebServer] [22m"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
-[2m[WebServer] [22m * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
-[2m[WebServer] [22m * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
-[2m[WebServer] [22m
-[2m[WebServer] [22min "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+[WebServer] node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js (74:0): A comment
+[WebServer]
+[WebServer] "/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+[WebServer]  * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+[WebServer]  * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+[WebServer]
+[WebServer] in "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
 
-[1A[2K[2m[WebServer] [22m
-[2m[WebServer] [22m(!) Some chunks are larger than 500 kB after minification. Consider:
-[2m[WebServer] [22m- Using dynamic import() to code-split the application
-[2m[WebServer] [22m- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
-[2m[WebServer] [22m- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[WebServer]
+[WebServer] (!) Some chunks are larger than 500 kB after minification. Consider:
+[WebServer] - Using dynamic import() to code-split the application
+[WebServer] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[WebServer] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
 
-[1A[2K[2m[WebServer] [22m(node:71106) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
-[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:71106) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
-[1A[2K[2m[WebServer] [22m(node:71150) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
-[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:71150) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
-[1A[2K[2m[WebServer] [22m(node:71163) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
-[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:71163) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
-[1A[2K[2m[WebServer] [22m(node:71191) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
-[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:71191) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
 
 
 Running 2 tests using 1 worker
 
-[1A[2K[1/2] [mobile-chromium] › e2e/mobile-navigation.spec.ts:17:1 › mobile navigation trigger and all sidebar destinations stay reachable on short, narrow screens
-[1A[2K  1) [mobile-chromium] › e2e/mobile-navigation.spec.ts:17:1 › mobile navigation trigger and all sidebar destinations stay reachable on short, narrow screens 
+[1/2] [mobile-chromium] › e2e/mobile-navigation.spec.ts:17:1 › mobile navigation trigger and all sidebar destinations stay reachable on short, narrow screens
+  1) [mobile-chromium] › e2e/mobile-navigation.spec.ts:17:1 › mobile navigation trigger and all sidebar destinations stay reachable on short, narrow screens
 
-    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
 
-    Expected: >= [32m0[39m
-    Received:    [31m-1.6097564697265625[39m
+    Expected: >= 0
+    Received:    -1.6097564697265625
 
       33 |     const box = await menu.boundingBox();
       34 |     expect(box).not.toBeNull();
@@ -59,13 +59,13 @@ Running 2 tests using 1 worker
     Error Context: test-results/mobile-navigation-mobile-n-b4d90-ble-on-short-narrow-screens-mobile-chromium/error-context.md
 
 
-[1A[2K[2/2] [mobile-chromium] › e2e/mobile-navigation.spec.ts:86:1 › each mobile sidebar destination opens and the page heading clears the sticky header
-[1A[2K  2) [mobile-chromium] › e2e/mobile-navigation.spec.ts:86:1 › each mobile sidebar destination opens and the page heading clears the sticky header 
+[2/2] [mobile-chromium] › e2e/mobile-navigation.spec.ts:86:1 › each mobile sidebar destination opens and the page heading clears the sticky header
+  2) [mobile-chromium] › e2e/mobile-navigation.spec.ts:86:1 › each mobile sidebar destination opens and the page heading clears the sticky header
 
-    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+    Error: expect(received).toBe(expected) // Object.is equality
 
-    Expected: [32mtrue[39m
-    Received: [31mfalse[39m
+    Expected: true
+    Received: false
 
     Call Log:
     - Timeout 5000ms exceeded while waiting on the predicate
@@ -82,6 +82,6 @@ Running 2 tests using 1 worker
     Error Context: test-results/mobile-navigation-each-mob-01b67-ng-clears-the-sticky-header-mobile-chromium/error-context.md
 
 
-[1A[2K  2 failed
-    [mobile-chromium] › e2e/mobile-navigation.spec.ts:17:1 › mobile navigation trigger and all sidebar destinations stay reachable on short, narrow screens 
-    [mobile-chromium] › e2e/mobile-navigation.spec.ts:86:1 › each mobile sidebar destination opens and the page heading clears the sticky header 
+  2 failed
+    [mobile-chromium] › e2e/mobile-navigation.spec.ts:17:1 › mobile navigation trigger and all sidebar destinations stay reachable on short, narrow screens
+    [mobile-chromium] › e2e/mobile-navigation.spec.ts:86:1 › each mobile sidebar destination opens and the page heading clears the sticky header
