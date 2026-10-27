@@ -64,7 +64,16 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+    <div
+      className="min-h-screen flex items-center justify-center bg-background bg-cover bg-center p-4 relative"
+      style={{
+        backgroundImage: `url("${import.meta.env.BASE_URL}images/hero-bg.jpg")`,
+      }}
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-black/50"
+      />
       <Card className="w-full max-w-md glass-panel border-border relative z-10 animate-in fade-in zoom-in duration-500">
         {safeSessionStorage.getItem("imsop:session-expired") && (
           <p role="status" className="p-4 text-sm">
