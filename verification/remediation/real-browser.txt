@@ -1,0 +1,18 @@
+[2m[WebServer] [22m(node:29772) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:29787) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 1 worker
+
+  ✓  1 system/real-stack.spec.ts:16:1 › real signed intake, persisted review actions, reload, notifications and exact Assistant context (6.6s)
+  ✓  2 system/real-stack.spec.ts:168:1 › exact backend mail link works during demo identity, is scrubbed, survives retry, and cannot replay (6.0s)
+  ✓  3 system/real-stack.spec.ts:259:1 › actual browser loads beyond 500, finds the old delayed record and exports the same authorized filter (2.2s)
+  ✓  4 system/recovery-matrix.spec.ts:8:5 › real recovery: signed out, emitted link (12.1s)
+  ✓  5 system/recovery-matrix.spec.ts:8:5 › real recovery: signed out, legacy link (12.1s)
+  ✓  6 system/recovery-matrix.spec.ts:8:5 › real recovery: live, emitted link (11.7s)
+  ✓  7 system/recovery-matrix.spec.ts:8:5 › real recovery: live, legacy link (11.1s)
+  ✓  8 system/recovery-matrix.spec.ts:8:5 › real recovery: demo, emitted link (12.1s)
+  ✓  9 system/recovery-matrix.spec.ts:8:5 › real recovery: demo, legacy link (12.0s)
+
+  9 passed (1.5m)

@@ -1,0 +1,19 @@
+{
+  "environment": "local isolated real gateway/PostgreSQL",
+  "selectionRecords": 620,
+  "filterRecords": 1,
+  "domContentLoadedMs": 38.5,
+  "loadMs": 38.60000002384186,
+  "sourceReads": [
+    {
+      "durationMs": 68.89999997615814
+    },
+    {
+      "durationMs": 24
+    },
+    {
+      "durationMs": 47.89999997615814
+    }
+  ],
+  "overflow": false
+}

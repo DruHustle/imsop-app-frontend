@@ -1,0 +1,47 @@
+
+> imsop-app@1.0.0 test /Users/andrewgotora/Software Development/GitHub/imsop-app/imsop-app-frontend
+> vitest run && node --test scripts/verify-deployment.test.mjs
+
+
+ RUN  v2.1.9 /Users/andrewgotora/Software Development/GitHub/imsop-app/imsop-app-frontend
+
+ ✓ client/src/lib/api-origin.test.ts (3 tests) 2ms
+ ✓ client/src/lib/recovery.test.ts (3 tests) 14ms
+ ✓ client/src/lib/api-auth.test.ts (4 tests) 7ms
+ ✓ client/src/lib/assistant.test.ts (4 tests) 10ms
+ ✓ client/src/__tests__/components.test.tsx (13 tests) 89ms
+ ✓ client/src/lib/auth.test.ts (6 tests) 1509ms
+   ✓ Auth Service > MockAuthService > should login with valid demo credentials 502ms
+   ✓ Auth Service > MockAuthService > should fail with invalid credentials 502ms
+   ✓ Auth Service > MockAuthService > should logout and clear session 503ms
+
+ Test Files  6 passed (6)
+      Tests  33 passed (33)
+   Start at  02:25:22
+   Duration  2.97s (transform 1.12s, setup 0ms, collect 1.62s, tests 1.63s, environment 5.77s, prepare 399ms)
+
+TAP version 13
+# Subtest: rejects stale lazy Operations chunks even when the entry bundle is clean
+ok 1 - rejects stale lazy Operations chunks even when the entry bundle is clean
+  ---
+  duration_ms: 6.575625
+  ...
+# Subtest: accepts same-origin and Oracle bundles
+ok 2 - accepts same-origin and Oracle bundles
+  ---
+  duration_ms: 3.722292
+  ...
+# Subtest: does not pass an absent build
+ok 3 - does not pass an absent build
+  ---
+  duration_ms: 1.3845
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.378542
