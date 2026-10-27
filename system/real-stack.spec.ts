@@ -152,7 +152,7 @@ test("real signed intake, persisted review actions, reload, notifications and ex
   await expect(
     page
       .getByRole("log")
-      .getByRole("link", { name: "Search shipments", exact: true })
+      .getByRole("link", { name: "Search shipments ↗", exact: true })
   ).toHaveCount(1);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
