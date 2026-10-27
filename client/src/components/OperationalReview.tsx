@@ -120,6 +120,7 @@ export function OperationalReview() {
   };
   return (
     <Panel
+      className="review-panel"
       title="Exception review"
       description="Acknowledge, assign and document follow-up. Resolving a review does not change carrier status."
       actions={
@@ -128,120 +129,136 @@ export function OperationalReview() {
         </Button>
       }
     >
-      {error && (
-        <p role="alert" className="text-destructive">
-          {error}
-        </p>
-      )}
-      {loading ? (
-        <p role="status">Loading reviews…</p>
-      ) : !items.length ? (
-        <p className="muted">
-          No review cases. New delayed or exception events open a case here.
-        </p>
-      ) : (
-        items.map(item => (
-          <article className="attention-row" key={item.id}>
-            <div>
-              <h3>{item.trackingNumber}</h3>
-              <p className="muted text-xs">
-                Updated {formatTime(item.updatedAt)} ·{" "}
-                {item.assigneeId
-                  ? `Assigned to ${operators.find(o => o.id === item.assigneeId)?.name ?? "workspace operator"}`
-                  : "Unassigned"}
-              </p>
-              <Link
-                className="record-link"
-                href={`/supply-chain/shipments/${item.shipmentId}`}
-              >
-                Open shipment ↗
-              </Link>
-            </div>
-            <div className="actions">
-              <StatusBadge value={item.state} />
-              <Button size="sm" variant="outline" onClick={() => inspect(item)}>
-                Review case
-              </Button>
-            </div>
-          </article>
-        ))
-      )}
-      {selected && (
-        <section
-          className="mt-6 space-y-4"
-          aria-label={`Review ${selected.trackingNumber}`}
-        >
-          <h3>{selected.trackingNumber} · Case history</h3>
-          {history.map(h => (
-            <p key={h.id} className="text-sm">
-              {h.action} · {h.actorName} · {formatTime(h.occurredAt)}
-              {h.note && ` · ${h.note}`}
+      <div className="review-workbench">
+        <div className="review-queue">
+          {error && (
+            <p role="alert" className="text-destructive">
+              {error}
             </p>
-          ))}
-          {editable && (
-            <>
-              <label className="field">
-                Review note
-                <textarea
-                  className="border rounded p-2 bg-background"
-                  maxLength={2000}
-                  value={note}
-                  onChange={e => setNote(e.target.value)}
-                />
-              </label>
-              <div className="actions flex-wrap">
-                <Button
-                  disabled={busy || selected.state !== "open"}
-                  onClick={() => act("acknowledge")}
-                >
-                  Acknowledge
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={busy || !note.trim()}
-                  onClick={() => act("note")}
-                >
-                  Save note
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() =>
-                    act(selected.state === "resolved" ? "reopen" : "resolve")
-                  }
-                >
-                  {selected.state === "resolved"
-                    ? "Reopen review"
-                    : "Resolve review"}
-                </Button>
+          )}
+          {loading ? (
+            <p role="status">Loading reviews…</p>
+          ) : !items.length ? (
+            <p className="muted">
+              No review cases. New delayed or exception events open a case here.
+            </p>
+          ) : (
+            items.map(item => (
+              <article className="attention-row" key={item.id}>
+                <div>
+                  <h3>{item.trackingNumber}</h3>
+                  <p className="muted text-xs">
+                    Updated {formatTime(item.updatedAt)} ·{" "}
+                    {item.assigneeId
+                      ? `Assigned to ${operators.find(o => o.id === item.assigneeId)?.name ?? "workspace operator"}`
+                      : "Unassigned"}
+                  </p>
+                  <Link
+                    className="record-link"
+                    href={`/supply-chain/shipments/${item.shipmentId}`}
+                  >
+                    Open shipment ↗
+                  </Link>
+                </div>
+                <div className="actions">
+                  <StatusBadge value={item.state} />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => inspect(item)}
+                  >
+                    Review case
+                  </Button>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+        {selected ? (
+          <section
+            className="review-detail space-y-4"
+            aria-label={`Review ${selected.trackingNumber}`}
+          >
+            <h3>{selected.trackingNumber} · Case history</h3>
+            {history.map(h => (
+              <p key={h.id} className="text-sm">
+                {h.action} · {h.actorName} · {formatTime(h.occurredAt)}
+                {h.note && ` · ${h.note}`}
+              </p>
+            ))}
+            {editable && (
+              <>
                 <label className="field">
-                  Assign to
-                  <select
+                  Review note
+                  <textarea
+                    className="border rounded p-2 bg-background"
+                    maxLength={2000}
+                    value={note}
+                    onChange={e => setNote(e.target.value)}
+                  />
+                </label>
+                <div className="actions flex-wrap">
+                  <Button
+                    disabled={busy || selected.state !== "open"}
+                    onClick={() => act("acknowledge")}
+                  >
+                    Acknowledge
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={busy || !note.trim()}
+                    onClick={() => act("note")}
+                  >
+                    Save note
+                  </Button>
+                  <Button
+                    variant="outline"
                     disabled={busy}
-                    value={selected.assigneeId ?? ""}
-                    onChange={e =>
-                      act(
-                        "assign",
-                        e.target.value ? Number(e.target.value) : null
-                      )
+                    onClick={() =>
+                      act(selected.state === "resolved" ? "reopen" : "resolve")
                     }
                   >
-                    <option value="">Unassigned</option>
-                    {operators.map(o => (
-                      <option key={o.id} value={o.id}>
-                        {o.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-            </>
-          )}
-          <Button variant="ghost" onClick={() => setSelected(null)}>
-            Close case
-          </Button>
-        </section>
-      )}
+                    {selected.state === "resolved"
+                      ? "Reopen review"
+                      : "Resolve review"}
+                  </Button>
+                  <label className="field">
+                    Assign to
+                    <select
+                      disabled={busy}
+                      value={selected.assigneeId ?? ""}
+                      onChange={e =>
+                        act(
+                          "assign",
+                          e.target.value ? Number(e.target.value) : null
+                        )
+                      }
+                    >
+                      <option value="">Unassigned</option>
+                      {operators.map(o => (
+                        <option key={o.id} value={o.id}>
+                          {o.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </>
+            )}
+            <Button variant="ghost" onClick={() => setSelected(null)}>
+              Close case
+            </Button>
+          </section>
+        ) : (
+          <div className="review-detail review-placeholder">
+            <h3>Shipment review</h3>
+            <p className="muted">
+              Choose a case to review its history, assign an owner and record
+              follow-up.
+            </p>
+          </div>
+        )}
+      </div>
     </Panel>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { AlertTriangle, ArrowUpRight, MessageSquare } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/contexts/DataContext";
 import {
@@ -10,72 +10,93 @@ import {
   SourceNote,
   SourceState,
   StatusBadge,
-  Freshness,
   EmptyState,
 } from "@/components/Workspace";
+import { StatusDistribution, EvidenceTimeline } from "@/components/Board";
 import { isException } from "@/lib/workspace";
-import { useAuth } from "@/contexts/AuthContext";
-import { routes, permitted } from "@/lib/routes";
+import { extractIdentifiers } from "@/lib/assistant";
 export default function Dashboard() {
-  const { shipments, orders, refresh } = useData();
-  const { user } = useAuth();
+  const { shipments, orders } = useData();
   const [query, setQuery] = useState("");
   const [, navigate] = useLocation();
-  const ready = shipments.status === "ready";
-  const attention = shipments.items.filter(isException);
-  const active = shipments.items.filter(
-    s => !["Delivered", "Cancelled"].includes(s.status)
+  const ready = shipments.status === "ready",
+    attention = shipments.items.filter(isException),
+    active = shipments.items.filter(
+      s => !["Delivered", "Cancelled"].includes(s.status)
+    );
+  const ids = extractIdentifiers(
+    query,
+    shipments.items.map(s => s.trackingNumber)
   );
-  const queryContext = shipments.items.find(s =>
-    query.toLowerCase().includes(s.trackingNumber.toLowerCase())
-  );
+  const context =
+    ids.length === 1
+      ? shipments.items.find(
+          s => s.trackingNumber.toLowerCase() === ids[0].toLowerCase()
+        )
+      : undefined;
+  const recent = [
+    ...shipments.items
+      .filter(s => s.observedAt)
+      .map(s => ({
+        id: "shipment:" + s.id,
+        title: `${s.trackingNumber} · ${s.status}`,
+        date: s.observedAt,
+        detail: "Recorded shipment observation",
+      })),
+    ...orders.items
+      .filter(o => o.createdAt)
+      .map(o => ({
+        id: "order:" + o.id,
+        title: `Order ${o.orderNumber}`,
+        date: o.createdAt,
+        detail: "Order created",
+      })),
+  ]
+    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
+    .slice(0, 4);
   return (
     <>
       <PageHeader
-        eyebrow="Your operations workspace"
         title="Operational overview"
-        description="Start with the work that needs attention. Every total below uses the same authorized record scope."
-        actions={
-          <Button variant="outline" onClick={refresh}>
-            Refresh reads
-          </Button>
-        }
+        description="Your supply chain at a glance"
       />
       <SourceNote
-        count={
-          shipments.status === "ready" ? shipments.items.length : undefined
-        }
+        count={ready ? shipments.items.length : undefined}
         total={shipments.total}
       />
       <div className="metric-grid">
         <Metric
+          kind="shipments"
           label="Shipments in scope"
           value={ready ? shipments.items.length : "—"}
           description="Matching workspace shipments"
           href="/supply-chain/shipments"
         />
         <Metric
+          kind="active"
           label="Active shipments"
           value={ready ? active.length : "—"}
           description="Excludes delivered and cancelled"
           href="/supply-chain/shipments?status=active"
         />
         <Metric
+          kind="attention"
           label="Needs attention"
           value={ready ? attention.length : "—"}
-          description="Status is delayed or exception"
+          description="Delayed or exception"
           href="/supply-chain/shipments?status=attention"
         />
         <Metric
+          kind="orders"
           label="Pending orders"
           value={
             orders.status === "ready"
               ? orders.items.filter(o => o.status === "Pending").length
-              : "Unknown"
+              : "—"
           }
           description={
             orders.status === "forbidden"
-              ? "Orders unavailable for your role"
+              ? "Unavailable for your role"
               : "Pending workspace orders"
           }
           href={
@@ -85,62 +106,93 @@ export default function Dashboard() {
           }
         />
       </div>
-      <div className="two-column">
-        <Panel
-          title="Needs attention"
-          description="Recorded shipment exceptions, separate from infrastructure health."
-          actions={
-            <Link
-              href="/supply-chain/shipments?status=attention"
-              className="record-link text-xs"
-            >
-              View all ↗
-            </Link>
-          }
-        >
-          {!ready || !shipments.items.length ? (
-            <SourceState source={shipments} />
-          ) : !attention.length ? (
-            <EmptyState
-              title="No recorded exceptions"
-              description="No delayed or exception statuses in this scope. This does not establish provider connectivity."
-            />
-          ) : (
-            attention.slice(0, 4).map(s => (
-              <article className="attention-row" key={s.id}>
-                <span className="attention-icon">
-                  <AlertTriangle size={17} />
-                </span>
-                <div>
-                  <Link
-                    className="record-link"
-                    href={`/supply-chain/shipments/${s.id}`}
-                  >
-                    {s.trackingNumber}
-                  </Link>
-                  <p className="muted">
-                    {s.origin} → {s.destination}
-                  </p>
-                  <Freshness shipment={s} />
-                </div>
-                <StatusBadge value={s.status} />
-              </article>
-            ))
-          )}
-        </Panel>
-        <div className="space-y-5">
+      <div className="overview-layout">
+        <div className="board-column">
           <Panel
-            title="Ask your data assistant"
-            description="Look up records and summarize the selected dataset. No model provider is configured."
+            title="Needs attention"
+            actions={
+              <Link
+                href="/supply-chain/shipments?status=attention"
+                className="record-link text-xs"
+              >
+                View all
+              </Link>
+            }
           >
-            <MessageSquare className="text-primary" size={22} />
+            {!ready || !shipments.items.length ? (
+              <SourceState source={shipments} />
+            ) : !attention.length ? (
+              <EmptyState
+                title="No recorded exceptions"
+                description="No delayed or exception shipments in this selection."
+              />
+            ) : (
+              <div className="compact-table-wrap">
+                <table className="data-table compact-table">
+                  <thead>
+                    <tr>
+                      <th>Shipment</th>
+                      <th>Route</th>
+                      <th>Status</th>
+                      <th>
+                        <span className="sr-only">Action</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attention.slice(0, 4).map(s => (
+                      <tr key={s.id}>
+                        <td>
+                          <Link
+                            className="record-link"
+                            href={`/supply-chain/shipments/${s.id}`}
+                          >
+                            {s.trackingNumber}
+                          </Link>
+                        </td>
+                        <td>
+                          {s.origin} → {s.destination}
+                        </td>
+                        <td>
+                          <StatusBadge value={s.status} />
+                        </td>
+                        <td>
+                          <Link
+                            className="record-link"
+                            href={`/supply-chain/shipments/${s.id}`}
+                          >
+                            Review shipment →
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Panel>
+          {ready && shipments.items.length > 0 && (
+            <Panel
+              title="Shipment status"
+              actions={
+                <span className="muted text-xs">
+                  {shipments.items.length} shipments
+                </span>
+              }
+            >
+              <StatusDistribution items={shipments.items} stacked />
+            </Panel>
+          )}
+        </div>
+        <div className="board-column">
+          <Panel title="Ask your data">
             <form
               className="query-box"
               onSubmit={e => {
                 e.preventDefault();
                 if (query.trim())
                   navigate(
-                    `/insights/assistant?q=${encodeURIComponent(query)}${queryContext ? "&item=shipment:" + queryContext.id : ""}`
+                    `/insights/assistant?q=${encodeURIComponent(query)}${context ? "&item=shipment:" + context.id : ""}`
                   );
               }}
             >
@@ -152,44 +204,41 @@ export default function Dashboard() {
                 className="query-input"
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="Ask about a tracking number…"
+                placeholder="Ask about a shipment…"
               />
               <Button
                 type="submit"
                 aria-label="Open Assistant with query"
                 disabled={!query.trim()}
               >
-                <ArrowUpRight size={17} />
+                <ArrowRight size={18} />
               </Button>
             </form>
             <p className="muted text-xs mt-3">
-              Your query opens for review before sending.
+              Review your query before sending.
             </p>
           </Panel>
-          <Panel title="Continue your work">
-            {routes
-              .filter(
-                r =>
-                  ["shipments", "orders", "analytics", "health"].includes(
-                    r.id
-                  ) && permitted(r, user)
-              )
-              .map(r => (
-                <Link key={r.id} href={r.href} className="quick-link">
-                  <span className="flex items-center gap-2">
-                    <r.icon size={16} />
-                    {r.label}
-                  </span>
-                  <ArrowUpRight size={14} />
-                </Link>
-              ))}
+          <Panel
+            title="Recent activity"
+            actions={
+              <Link
+                className="record-link text-xs"
+                href="/supply-chain/shipments"
+              >
+                View all
+              </Link>
+            }
+          >
+            {recent.length ? (
+              <EvidenceTimeline items={recent} />
+            ) : (
+              <p className="muted text-sm">
+                No timestamped activity is available in this selection.
+              </p>
+            )}
           </Panel>
         </div>
       </div>
-      <p className="muted text-xs">
-        Metrics describe this database snapshot. Counts are not whole-platform
-        totals. Unknown values indicate unavailable or unauthorized sources.
-      </p>
     </>
   );
 }

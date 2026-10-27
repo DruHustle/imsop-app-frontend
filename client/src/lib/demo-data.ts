@@ -62,7 +62,7 @@ const routes = [
   ],
   [
     "SHP-3315",
-    "A very long origin facility name — Frankfurt distribution and consolidation centre, Germany",
+    "Frankfurt distribution centre, Germany",
     "Cape Town, South Africa",
     "delivered",
     "North Atlantic Freight & Logistics",

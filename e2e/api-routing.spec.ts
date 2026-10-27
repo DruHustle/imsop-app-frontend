@@ -149,7 +149,7 @@ test("live assistant uses permitted records and infrastructure remains honestly 
   );
   await navigate(page, "Recommendations");
   await expect(
-    page.getByRole("heading", { name: "Live forecasts not configured" })
+    page.getByText("Live forecasts not configured", {exact:true})
   ).toBeVisible();
   await navigate(page, "Service health");
   await expect(page.getByText("Degraded", { exact: true })).toBeVisible();
@@ -165,12 +165,9 @@ test("live assistant uses permitted records and infrastructure remains honestly 
   await expect(
     page.getByText("Demo API process", { exact: true })
   ).toBeHidden();
-  await page
-    .getByRole("link", { name: "Integrations", exact: true })
-    .last()
-    .click();
+  await navigate(page,"Integrations");
   await expect(
-    page.getByRole("heading", { name: "Logistics sources" })
+    page.getByRole("heading", { name: "Carrier webhooks" })
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Notifications", exact: true })

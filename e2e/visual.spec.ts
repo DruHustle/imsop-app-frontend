@@ -96,7 +96,7 @@ for (const theme of ["light", "dark"] as const)
       ["/insights/analytics", "Analytics", "analytics"],
       [
         "/insights/recommendations",
-        "Recommendations & forecasts",
+        "Recommendations",
         "recommendations",
       ],
       ["/insights/assistant", "Assistant", "assistant"],

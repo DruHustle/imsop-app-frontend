@@ -18,7 +18,7 @@ for (const role of ["admin", "engineer", "analyst", "demo"] as const) {
         ["admin", "engineer"].includes(role),
         "Service health",
       ],
-      ["/intelligence", role !== "demo", "Recommendations & forecasts"],
+      ["/intelligence", role !== "demo", "Recommendations"],
       ["/supply-chain/orders", role !== "demo", "Orders"],
     ] as const) {
       await page.goto("/#" + path);

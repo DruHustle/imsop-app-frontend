@@ -1,74 +1,35 @@
-import { OperationalReview } from "@/components/OperationalReview";
-import { Link } from "wouter";
 import { useData } from "@/contexts/DataContext";
-import {
-  PageHeader,
-  Panel,
-  SourceNote,
-  SourceState,
-  EmptyState,
-  StatusBadge,
-} from "@/components/Workspace";
-import { isException } from "@/lib/workspace";
+import { PageHeader, SourceNote } from "@/components/Workspace";
+import { Notice } from "@/components/Board";
+import { OperationalReview } from "@/components/OperationalReview";
+import { DemoReview } from "@/components/DemoReview";
 export default function Intelligence() {
-  const { mode, shipments } = useData();
-  const examples = shipments.items.filter(isException);
+  const { mode } = useData();
   return (
     <>
       <PageHeader
-        eyebrow="Insights / decision support"
-        title="Recommendations & forecasts"
-        description="Review evidence before making a decision. Predictive models and inventory adjustments are not configured."
+        title="Recommendations"
+        description="Review exceptions and decide what to do next"
       />
       <SourceNote />
-      {mode === "live" && <OperationalReview />}
-      <Panel title="Prediction capability">
-        <StatusBadge value="Not configured" />
-        <p className="muted text-sm mt-4">
-          No configured prediction, weather, demand or risk-model provider
-          exists in this application. Model accuracy, savings and live risk
-          scores are unavailable. This workspace cannot apply recommendations or
-          change inventory.
+      <Notice title="Forecasts not configured">
+        Review guidance uses recorded shipment events. Predictions and automated
+        operational changes are unavailable.
+      </Notice>
+      {mode === "demo" ? <DemoReview /> : <OperationalReview />}
+      <details className="source-details">
+        <summary>
+          {mode === "live"
+            ? "Live forecasts not configured"
+            : "About demonstration reviews"}
+        </summary>
+        <p>
+          Forecasts need an optional provider with a defined horizon and
+          evidence contract. Review actions document human follow-up and do not
+          change delivery status, inventory or bookings. Demo actions persist
+          only on this device.
         </p>
-      </Panel>
-      {mode === "demo" ? (
-        <Panel
-          title="Demo review scenarios"
-          description="Deterministic examples derived from exception statuses in the demonstration shipment dataset."
-        >
-          {shipments.status !== "ready" ? (
-            <SourceState source={shipments} />
-          ) : (
-            examples.map(s => (
-              <article className="attention-row" key={s.id}>
-                <div>
-                  <p className="eyebrow">Demonstration · review required</p>
-                  <h3>Review {s.trackingNumber}</h3>
-                  <p className="muted">
-                    Recorded {s.status.toLowerCase()} status. Inspect the latest
-                    provider event before contacting your operations team. No
-                    cause or impact is inferred.
-                  </p>
-                  <Link
-                    className="record-link text-xs inline-block mt-3"
-                    href={`/supply-chain/shipments/${s.id}/tracking`}
-                  >
-                    Review event evidence ↗
-                  </Link>
-                </div>
-                <StatusBadge value={s.status} />
-              </article>
-            ))
-          )}
-        </Panel>
-      ) : (
-        <Panel>
-          <EmptyState
-            title="Live forecasts not configured"
-            description="Descriptive shipment data is available in Analytics. Switch the global data mode to Demo to inspect clearly labelled review scenarios."
-          />
-        </Panel>
-      )}
+      </details>
     </>
   );
 }

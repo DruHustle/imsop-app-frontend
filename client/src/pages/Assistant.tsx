@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { readSource } from "@/contexts/DataContext";
-import { normalizeShipment, normalizeOrder } from "@/lib/workspace";
+import { formatTime, normalizeShipment, normalizeOrder } from "@/lib/workspace";
 import { useData } from "@/contexts/DataContext";
-import { PageHeader, Panel, SourceNote } from "@/components/Workspace";
+import {
+  PageHeader,
+  Panel,
+  SourceNote,
+  StatusBadge,
+} from "@/components/Workspace";
 import { Button } from "@/components/ui/button";
 import { answerQuestion, extractIdentifiers, Answer } from "@/lib/assistant";
 import { useHashQuery } from "@/lib/hash-location";
@@ -143,9 +148,8 @@ function Session() {
   return (
     <>
       <PageHeader
-        eyebrow="Insights"
         title="Assistant"
-        description="Look up records, compare routes and ETAs, or review exceptions. Answers use recorded evidence."
+        description="Ask about the records you can access"
       />
       <SourceNote />
       {params.get("item") && (
@@ -163,7 +167,7 @@ function Session() {
         </div>
       )}
       <Panel
-        title="Ask about the selected dataset"
+        title="Data assistant"
         description="Use a known tracking/order number, ask for a shipment summary, or review exceptions."
       >
         <div
@@ -209,7 +213,60 @@ function Session() {
                 <p className="eyebrow">
                   {mode === "demo" ? "Demo data assistant" : "Data assistant"}
                 </p>
-                <p>{m.answer.text}</p>
+                {m.answer.records && m.answer.records.length > 1 ? (
+                  <>
+                    <p>Comparison from the records you can access.</p>
+                    <div className="compact-table-wrap assistant-comparison">
+                      <table className="data-table compact-table">
+                        <thead>
+                          <tr>
+                            <th>Record</th>
+                            <th>Route / customer</th>
+                            <th>Recorded status</th>
+                            <th>Last observation</th>
+                            <th>
+                              <span className="sr-only">Open</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {m.answer.records.map(record => (
+                            <tr key={record.key}>
+                              <td>
+                                {record.identifier}
+                                <span className="freshness">{record.kind}</span>
+                              </td>
+                              <td>{record.route}</td>
+                              <td>
+                                <StatusBadge value={record.status} />
+                              </td>
+                              <td>{formatTime(record.observedAt)}</td>
+                              <td>
+                                <Link
+                                  className="record-link"
+                                  href={record.href}
+                                >
+                                  Open →
+                                </Link>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {m.answer.unresolved?.map(message => (
+                      <p key={message} className="muted text-sm">
+                        {message}
+                      </p>
+                    ))}
+                    <details className="source-details">
+                      <summary>Record evidence and limitations</summary>
+                      <p>{m.answer.text}</p>
+                    </details>
+                  </>
+                ) : (
+                  <p>{m.answer.text}</p>
+                )}
                 {m.answer.links.map(l => (
                   <Link key={l.href} href={l.href}>
                     {l.label} ↗

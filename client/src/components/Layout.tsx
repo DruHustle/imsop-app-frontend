@@ -7,6 +7,9 @@ import {
   LogOut,
   Settings,
   UserRound,
+  Truck,
+  BarChart3,
+  Boxes,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import {
@@ -36,6 +39,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { mode, setMode, demoIdentity } = useData();
   const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const main = useRef<HTMLElement>(null);
   const focusAfterNavigation = useRef(false);
   const closeForNavigation = () => {
@@ -46,6 +50,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (open) focusAfterNavigation.current = true;
     setOpen(false);
+    if (current?.group)
+      setCollapsed(prior => ({ ...prior, [current.group]: false }));
     document.title = `${current?.label ?? "Page"} | IMSOP`;
     const timer = setTimeout(() => main.current?.focus(), 0);
     return () => clearTimeout(timer);
@@ -73,20 +79,48 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             );
             return (
               items.length > 0 && (
-                <div className="nav-group" key={group}>
-                  <p>{group}</p>
-                  {items.map(r => (
-                    <Link
-                      key={r.id}
-                      href={r.href}
-                      className="nav-link"
-                      onClick={closeForNavigation}
-                      aria-current={current?.id === r.id ? "page" : undefined}
+                <div
+                  className={`nav-group ${group === "Workspace" ? "nav-overview" : ""}`}
+                  key={group}
+                >
+                  {group !== "Workspace" && (
+                    <button
+                      type="button"
+                      className="nav-group-toggle"
+                      aria-expanded={!collapsed[group]}
+                      onClick={() =>
+                        setCollapsed(prior => ({
+                          ...prior,
+                          [group]: !prior[group],
+                        }))
+                      }
                     >
-                      <r.icon size={18} />
-                      <span>{r.label}</span>
-                    </Link>
-                  ))}
+                      <span>
+                        {group === "Supply chain" ? (
+                          <Truck size={15} />
+                        ) : group === "Insights" ? (
+                          <BarChart3 size={15} />
+                        ) : (
+                          <Boxes size={15} />
+                        )}{" "}
+                        {group}
+                      </span>
+                      <ChevronDown size={12} aria-hidden="true" />
+                    </button>
+                  )}
+                  {(!collapsed[group] || group === "Workspace") &&
+                    items.map(r => (
+                      <Link
+                        key={r.id}
+                        href={r.href}
+                        className="nav-link"
+                        onClick={closeForNavigation}
+                        aria-current={current?.id === r.id ? "page" : undefined}
+                      >
+                        <r.icon size={18} />
+                        <span>{r.label}</span>
+                      </Link>
+                    ))}
                 </div>
               )
             );
@@ -94,9 +128,31 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         )}
       </nav>
       <div className="sidebar-footer">
-        <span className="status-dot" />
-        Provider health unknown<p>Read evidence in service health.</p>
-        <span className="text-xs muted">IMSOP / {user?.role}</span>
+        <Link
+          href="/profile"
+          className="sidebar-profile"
+          onClick={closeForNavigation}
+        >
+          <span className="avatar-initial">
+            {user?.name
+              ?.split(" ")
+              .map(n => n[0])
+              .slice(0, 2)
+              .join("")}
+          </span>
+          <span>
+            <strong>{user?.name}</strong>
+            <small>{user?.role}</small>
+          </span>
+          <ChevronDown size={14} />
+        </Link>
+        <Link
+          href="/settings"
+          className="sidebar-preferences"
+          onClick={closeForNavigation}
+        >
+          Preferences
+        </Link>
       </div>
     </>
   );
@@ -229,7 +285,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           ref={main}
           className="main-content"
         >
-          <SectionNav />
           {children}
         </main>
         <footer className="page-footer">

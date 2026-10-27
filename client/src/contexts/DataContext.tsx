@@ -92,7 +92,10 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
   const selectedFilters = () => {
     const q = new URLSearchParams(window.location.hash.split("?")[1] || "");
     const result = new URLSearchParams();
-    if (window.location.hash.startsWith("#/supply-chain/shipments?"))
+    if (
+      window.location.hash.startsWith("#/supply-chain/shipments?") ||
+      window.location.hash.startsWith("#/insights/analytics?")
+    )
       for (const name of ["q", "status", "carrier", "mode", "from", "to"]) {
         const value = q.get(name);
         if (value) result.set(name, value);
@@ -152,7 +155,8 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
         const selection = new URLSearchParams();
         if (
           kind === "shipments" &&
-          window.location.hash.startsWith("#/supply-chain/shipments?")
+          (window.location.hash.startsWith("#/supply-chain/shipments?") ||
+            window.location.hash.startsWith("#/insights/analytics?"))
         )
           for (const name of ["q", "status", "carrier", "mode", "from", "to"]) {
             const value = query.get(name);

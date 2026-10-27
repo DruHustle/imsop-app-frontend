@@ -1,3 +1,4 @@
+import { RecordPreview } from "@/components/Board";
 import { Link, useLocation } from "wouter";
 import { useHashQuery } from "@/lib/hash-location";
 import { useData } from "@/contexts/DataContext";
@@ -36,15 +37,15 @@ export default function Orders() {
           .includes(q.toLowerCase())) &&
       (!status || o.status === status)
   );
+  const selected = items.find(item => item.id === params.get("selected"));
   const pages = Math.max(1, Math.ceil(items.length / 10));
   const current = Math.min(page, pages);
   const slice = items.slice((current - 1) * 10, current * 10);
   return (
     <>
       <PageHeader
-        eyebrow="Supply chain"
         title="Orders"
-        description="Review operational orders and their recorded amounts. Unknown currencies stay unlabelled."
+        description="Review incoming orders and their progress"
       />
       <SourceNote
         count={orders.status === "ready" ? orders.items.length : undefined}
@@ -115,12 +116,22 @@ export default function Orders() {
                 </thead>
                 <tbody>
                   {slice.map(o => (
-                    <tr key={o.id}>
+                    <tr
+                      key={o.id}
+                      className={selected?.id === o.id ? "selected-row" : ""}
+                    >
                       <td>
                         <Link className="record-link" href={detail(o.id)}>
                           {o.orderNumber}
                         </Link>
-                        <span className="freshness">Node record #{o.id}</span>
+                        <button
+                          className="record-preview-button"
+                          data-preview-key={`order:${o.id}`}
+                          aria-label={`Preview ${o.orderNumber}`}
+                          onClick={() => set("selected", o.id)}
+                        >
+                          Preview →
+                        </button>
                       </td>
                       <td>{o.customerId ?? "Not supplied"}</td>
                       <td>
@@ -152,6 +163,14 @@ export default function Orders() {
                     {o.totalAmount ?? "not supplied"} (
                     {o.currency ?? "currency unknown"})
                   </p>
+                  <button
+                    className="record-preview-button"
+                    data-preview-key={`order:${o.id}`}
+                    aria-label={`Preview ${o.orderNumber}`}
+                    onClick={() => set("selected", o.id)}
+                  >
+                    Preview →
+                  </button>
                   <div className="card-bottom mt-3">
                     <span>{formatTime(o.createdAt)}</span>
                     <Link className="record-link" href={detail(o.id)}>
@@ -185,6 +204,13 @@ export default function Orders() {
           </>
         )}
       </Panel>
+      {selected && (
+        <RecordPreview
+          order={selected}
+          href={detail(selected.id)}
+          onClose={() => set("selected", "")}
+        />
+      )}
       <div className="actions">
         <ExportActions
           name="operational-orders"
@@ -202,13 +228,15 @@ export default function Orders() {
           scope={`${items.length} filtered of newest ${orders.items.length} operational orders; search=${q}; status=${status || "all"}`}
         />
       </div>
-      <Panel title="Purchase orders are a separate service">
+      <details className="source-details">
+        <summary>Purchase intake and source details</summary>
         <p className="muted text-xs">
           Purchase intake is available through the validated purchasing API. A
           purchasing form remains unavailable until complete item selection and
-          receiving workflows are supported. See Help for source details.
+          receiving workflows are supported. Operational order IDs come from
+          this source; purchasing uses a separate organization-scoped service.
         </p>
-      </Panel>
+      </details>
     </>
   );
 }

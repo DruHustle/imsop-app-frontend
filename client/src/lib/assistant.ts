@@ -39,7 +39,19 @@ import {
   DEMO_AS_OF,
   isException,
 } from "./workspace";
+export interface AnswerRecord {
+  key: string;
+  identifier: string;
+  kind: "shipment" | "order";
+  route: string;
+  status: string;
+  observedAt: string | null;
+  eta: string | null;
+  href: string;
+}
 export interface Answer {
+  records?: AnswerRecord[];
+  unresolved?: string[];
   text: string;
   links: { label: string; href: string }[];
   source: string;
@@ -55,10 +67,14 @@ export function answerQuestion(
     mode === "demo"
       ? `Deterministic demo dataset · As of ${DEMO_AS_OF}`
       : "Authorized Node operational database snapshot · Scope: complete matching selection";
+  const records: AnswerRecord[] = [],
+    unresolved: string[] = [];
   const result = (text: string, links: Answer["links"] = []): Answer => ({
     text: prefix + text,
     links,
     source,
+    records,
+    unresolved,
   });
   const tokens = extractIdentifiers(question, [
     ...shipments.items.map(s => s.trackingNumber),
@@ -89,6 +105,16 @@ export function answerQuestion(
       const item = matches[0],
         order = matchesOrders[0];
       if (item) {
+        records.push({
+          key: "shipment:" + item.id,
+          identifier: item.trackingNumber,
+          kind: "shipment",
+          route: `${item.origin} → ${item.destination}`,
+          status: item.status,
+          observedAt: item.observedAt,
+          eta: item.estimatedArrival,
+          href: `/supply-chain/shipments/${item.id}`,
+        });
         descriptions.push(
           `${item.trackingNumber}: ${item.status}. ${item.origin} → ${item.destination}. Carrier: ${item.carrier}; mode: ${item.transportMode}. ETA: ${formatTime(item.estimatedArrival)}. Latest event observation: ${formatTime(item.observedAt)}. Provider: ${item.provider ?? "not supplied"}. Received: ${formatTime(item.receivedAt)}.`
         );
@@ -97,6 +123,16 @@ export function answerQuestion(
           href: `/supply-chain/shipments/${item.id}`,
         });
       } else if (order) {
+        records.push({
+          key: "order:" + order.id,
+          identifier: order.orderNumber,
+          kind: "order",
+          route: `Customer ${order.customerId ?? "not supplied"}`,
+          status: order.status,
+          observedAt: order.createdAt,
+          eta: null,
+          href: `/supply-chain/orders/${order.id}`,
+        });
         descriptions.push(
           `${order.orderNumber}: ${order.status}. Amount: ${order.totalAmount ?? "not supplied"}; ${order.currency ?? "currency not supplied"}. Created: ${formatTime(order.createdAt)}. Supplier and shipment associations are unavailable.`
         );
@@ -111,6 +147,7 @@ export function answerQuestion(
             : shipments.status !== "ready"
               ? "The shipment source is unavailable. Retry the source read."
               : `${token} was not found in the permitted context. I cannot infer its status or location.`;
+        unresolved.push(message);
         descriptions.push(message);
         links.push({
           label: "Search shipments",

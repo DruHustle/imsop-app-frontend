@@ -1,9 +1,11 @@
-import { IntegrationRegistry } from "@/components/OperationalReview";
+import { IntegrationOverview } from "@/components/IntegrationOverview";
+import { Notice, EvidenceTimeline } from "@/components/Board";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useData } from "@/contexts/DataContext";
 import { API_ORIGIN } from "@/lib/api-origin";
 import {
+  Metric,
   PageHeader,
   Panel,
   SourceNote,
@@ -27,6 +29,9 @@ function HealthWorkspace() {
   const { mode } = useData();
   const [path] = useLocation();
   const integrations = path.endsWith("/integrations");
+  const [history, setHistory] = useState<
+    { id: string; title: string; date: string; detail: string }[]
+  >([]);
   const [probes, setProbes] = useState<Probe[]>([]);
   const [loading, setLoading] = useState(true);
   const [version, setVersion] = useState(0);
@@ -58,6 +63,15 @@ function HealthWorkspace() {
           evidence:
             "Example: one dependency unavailable; not a production diagnosis",
           checkedAt: DEMO_AS_OF,
+        },
+      ]);
+      setHistory([
+        {
+          id: "demo-check",
+          title: "Demonstration check",
+          date: DEMO_AS_OF,
+          detail:
+            "Fixed examples: liveness healthy; dependency readiness degraded",
         },
       ]);
       setLoading(false);
@@ -97,6 +111,17 @@ function HealthWorkspace() {
           setProbes(values);
           setLoading(false);
           setClock(Date.now());
+          setHistory(prior =>
+            [
+              {
+                id: crypto.randomUUID(),
+                title: "Checks complete",
+                date: new Date().toISOString(),
+                detail: values.map(v => `${v.name}: ${v.status}`).join(" · "),
+              },
+              ...prior,
+            ].slice(0, 5)
+          );
         }
       })
       .finally(() => clearTimeout(timeout));
@@ -116,12 +141,11 @@ function HealthWorkspace() {
   return (
     <>
       <PageHeader
-        eyebrow="Infrastructure"
         title={integrations ? "Integrations" : "Service health"}
         description={
           integrations
-            ? "Configuration availability is separate from shipment events and infrastructure liveness."
-            : "Scoped observations from the API liveness and readiness endpoints. Checks become stale after 60 seconds."
+            ? "Understand what is connected and how to add a source"
+            : "Check known services and the age of their evidence"
         }
         actions={
           !integrations && (
@@ -137,80 +161,91 @@ function HealthWorkspace() {
       />
       <SourceNote />
       {integrations ? (
-        <>
-          {mode === "live" && <IntegrationRegistry />}
-          {mode === "demo" && (
-            <Panel title="Connector configuration">
-              <EmptyState
-                title={
-                  mode === "demo"
-                    ? "Demonstration connector examples"
-                    : "Connector status not configured"
-                }
-                description={
-                  mode === "demo"
-                    ? "SAP, carrier and notification connectors are examples only. No accounts are connected by this screen."
-                    : "This application exposes no authorized connector-status endpoint. Provider connectivity and last successful sync are unknown."
-                }
-              />
-            </Panel>
-          )}
-          <Panel title="Logistics event ingestion">
-            <StatusBadge value="Unknown" />
-            <p className="muted text-sm mt-4">
-              The backend supports signed logistics webhooks. A stored event
-              proves that an event was received at its receipt timestamp; it
-              does not prove that the carrier is currently connected. Configure
-              providers outside this read-only workspace.
-            </p>
-          </Panel>
-        </>
+        <IntegrationOverview />
       ) : (
         <>
-          <Panel
-            title="Aggregate of observed checks"
-            description="Unavailable dependencies make the aggregate degraded. Unknown and stale evidence never becomes an operational declaration."
-          >
-            <StatusBadge
+          <div className="metric-grid metric-grid-three">
+            <Metric
+              kind="health"
+              label="Readiness"
+              value={loading ? "—" : aggregateHealth(scoped.map(p => p.status))}
+              description="Observed API checks only"
+            />
+            <Metric
+              kind="database"
+              label="Checks observed"
+              value={loading ? "—" : scoped.length}
+              description="Liveness and dependency readiness"
+            />
+            <Metric
+              kind="time"
+              label="Last checked"
               value={
-                loading ? "Unknown" : aggregateHealth(scoped.map(p => p.status))
+                scoped[0]?.checkedAt
+                  ? new Date(scoped[0].checkedAt).toLocaleTimeString(
+                      undefined,
+                      { hour: "2-digit", minute: "2-digit", timeZone: "UTC" }
+                    ) + " UTC"
+                  : "—"
+              }
+              description={
+                mode === "demo"
+                  ? "Demonstration evidence"
+                  : "Manual check · stale after 60 seconds"
               }
             />
-            <p className="muted text-xs mt-3">
-              {mode === "demo"
-                ? "Demo examples are fixed at the dataset as-of time."
-                : `Probe target: ${API_ORIGIN || "same-origin API proxy"}. A successful /health read proves process liveness. /ready checks database readiness on Node and configured service dependencies on the gateway.`}
-            </p>
-          </Panel>
-          <Panel title="Known API checks">
-            {loading ? (
-              <p role="status">
-                Checking process liveness and dependency readiness…
-              </p>
-            ) : (
-              scoped.map(p => (
-                <article key={p.name} className="attention-row">
-                  <div>
-                    <h3>{p.name}</h3>
-                    <p className="muted">{p.evidence}</p>
-                    <span className="freshness">
-                      Probe observed: {formatTime(p.checkedAt)}
-                    </span>
-                  </div>
-                  <StatusBadge value={p.status} />
-                </article>
-              ))
-            )}
-          </Panel>
-          <Panel title="Provider and cloud resource health">
-            <StatusBadge value="Unknown" />
-            <p className="muted text-sm mt-4">
-              No evidence source verifies SAP, payment gateways, messaging
-              providers, cloud resources or carrier connectivity. Random
-              performance metrics and whole-platform availability claims are not
-              displayed.
-            </p>
-          </Panel>
+          </div>
+          <div className="health-layout">
+            <Panel title="Service checks">
+              {loading ? (
+                <p role="status">
+                  Checking process liveness and dependency readiness…
+                </p>
+              ) : (
+                <div className="compact-table-wrap">
+                  <table className="data-table compact-table">
+                    <thead>
+                      <tr>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th>Checked</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {scoped.map(p => (
+                        <tr key={p.name}>
+                          <td>{p.name}</td>
+                          <td>
+                            <StatusBadge value={p.status} />
+                          </td>
+                          <td>{formatTime(p.checkedAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <div className="mt-4">
+                <Notice title="Provider health unknown">
+                  Service checks do not confirm carrier connectivity.
+                </Notice>
+              </div>
+              <details className="source-details">
+                <summary>Check source details</summary>
+                {scoped.map(p => (
+                  <p key={p.name}>{p.evidence}</p>
+                ))}
+                <p>
+                  Probe target: {API_ORIGIN || "same-origin API proxy"}. These
+                  checks do not establish whole-platform or cloud-resource
+                  health.
+                </p>
+              </details>
+            </Panel>
+            <Panel title="Recent checks">
+              <EvidenceTimeline items={history} />
+            </Panel>
+          </div>
         </>
       )}
     </>
