@@ -21,6 +21,7 @@ test('board layouts preserve the established theme tokens, dark backgrounds and 
   expect(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--primary').trim())).toBe(primary);
   expect(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(background);
   expect(await page.locator('.sidebar').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(sidebar);
+  expect(await page.getByRole('button',{name:'Account menu',exact:true}).evaluate(el=>getComputedStyle(el).color)).toBe(theme==='dark'?'rgb(229, 237, 246)':'rgb(23, 43, 66)');
  }
  await page.getByLabel('Theme',{exact:true}).selectOption('system');await page.emulateMedia({colorScheme:'light'});await expect(page.locator('html')).not.toHaveClass(/dark/);await page.emulateMedia({colorScheme:'dark'});await expect(page.locator('html')).toHaveClass(/dark/);
 });
