@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { CarrierComparison } from "@/components/WorkspaceVisuals";
+import { useLocation } from "wouter";
+import { useHashQuery } from "@/lib/hash-location";
+import { DeliveryTrend } from "@/components/Board";
 import { useData } from "@/contexts/DataContext";
 import {
   PageHeader,
@@ -12,9 +15,19 @@ import { filterShipments, emptyFilters, performance } from "@/lib/workspace";
 import { ExportActions } from "@/components/ExportActions";
 export default function AnalyticsPage() {
   const { shipments } = useData();
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [carrier, setCarrier] = useState("");
+  const [path, navigate] = useLocation();
+  const params = useHashQuery();
+  const from = params.get("from") || "",
+    to = params.get("to") || "",
+    carrier = params.get("carrier") || "";
+  const set = (key: string, value: string) => {
+    const q = new URLSearchParams(params);
+    value ? q.set(key, value) : q.delete(key);
+    navigate(path + (q.size ? "?" + q : ""), { replace: true });
+  };
+  const setFrom = (value: string) => set("from", value),
+    setTo = (value: string) => set("to", value),
+    setCarrier = (value: string) => set("carrier", value);
   const items = filterShipments(shipments.items, {
     ...emptyFilters,
     from,
@@ -35,6 +48,7 @@ export default function AnalyticsPage() {
     status: s.status,
     carrier: s.carrier,
     estimatedArrival: s.estimatedArrival,
+    promisedArrival: s.promisedArrival,
     actualArrival: s.actualArrival,
     observedAt: s.observedAt,
     provider: s.provider,
@@ -42,9 +56,8 @@ export default function AnalyticsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Insights / descriptive reporting"
         title="Analytics"
-        description="Explore recorded shipment performance. Date and carrier filters apply to every metric, chart and exported record."
+        description="Understand recorded delivery performance"
       />
       <SourceNote
         count={
@@ -86,22 +99,22 @@ export default function AnalyticsPage() {
           <button
             className="record-link text-xs self-end p-2"
             onClick={() => {
-              setFrom("");
-              setTo("");
-              setCarrier("");
+              navigate(path, { replace: true });
             }}
           >
             Reset scope
           </button>
         </div>
       </Panel>
-      <div className="metric-grid">
+      <div className="metric-grid metric-grid-three">
         <Metric
-          label="Filtered shipments"
+          kind="shipments"
+          label="Shipments in scope"
           value={ready ? items.length : "—"}
           description="Created within selected dates"
         />
         <Metric
+          kind="delivered"
           label="Delivered"
           value={
             ready ? items.filter(s => s.status === "Delivered").length : "—"
@@ -109,6 +122,7 @@ export default function AnalyticsPage() {
           description="Recorded delivered status"
         />
         <Metric
+          kind="performance"
           label="On-time deliveries"
           value={
             ready && metrics.rate !== null
@@ -116,11 +130,6 @@ export default function AnalyticsPage() {
               : "Not available"
           }
           description={`${metrics.onTime} / ${metrics.denominator} eligible deliveries`}
-        />
-        <Metric
-          label="Financial performance"
-          value="Not available"
-          description="No cost, revenue or currency evidence"
         />
       </div>
       {!ready || !shipments.items.length ? (
@@ -137,50 +146,29 @@ export default function AnalyticsPage() {
       ) : (
         <div className="two-column">
           <Panel
-            title="Shipment status distribution"
+            title="Carrier comparison"
             description={`${items.length} filtered records; counts include every record in scope.`}
           >
-            <div
-              role="img"
-              aria-label={statuses
-                .map(s => `${s.status}: ${s.shipments}`)
-                .join("; ")}
-              className="space-y-4"
-            >
-              {statuses.map(s => (
-                <div key={s.status}>
-                  <div className="flex justify-between text-xs mb-2">
-                    <span>{s.status}</span>
-                    <strong>{s.shipments}</strong>
-                  </div>
-                  <div className="h-2 rounded bg-muted">
-                    <div
-                      className="h-2 rounded bg-primary"
-                      style={{
-                        width: `${(s.shipments / items.length) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <CarrierComparison items={items} onSelect={setCarrier} />
           </Panel>
-          <Panel title="How on-time performance is calculated">
-            <p className="muted text-xs">
-              Denominator: delivered shipments with both estimated and actual
-              arrival timestamps. Numerator: eligible shipments whose actual
-              arrival is at or before the estimate. Rate = numerator ÷
-              denominator. Missing dates are excluded; percentages are never
-              averaged.
-            </p>
-            <p className="muted text-xs mt-4">
-              Filters use shipment creation dates (UTC), not event occurrence
-              dates. Current source status is a snapshot; it is not a historical
-              status series.
-            </p>
+          <Panel
+            title="Delivery performance"
+            description="Recorded actual-arrival dates in the selected shipment scope"
+          >
+            <DeliveryTrend items={items} />
           </Panel>
         </div>
       )}
+      <details className="source-details">
+        <summary>How on-time performance is calculated</summary>
+        <p>
+          Eligible deliveries have both explicit actual arrival and the original
+          retained promise. On time means actual arrival at or before that
+          promise. ETA revisions do not improve the baseline. Filters select
+          shipment creation dates in UTC; the chart groups these selected
+          deliveries by actual-arrival date.
+        </p>
+      </details>
       <div className="actions">
         <ExportActions
           items={ready ? rows : []}
@@ -190,12 +178,13 @@ export default function AnalyticsPage() {
             { key: "createdAt", label: "Created at (UTC)" },
             { key: "status", label: "Recorded status" },
             { key: "carrier", label: "Carrier" },
-            { key: "estimatedArrival", label: "Estimated arrival" },
+            { key: "estimatedArrival", label: "Current ETA" },
+            { key: "promisedArrival", label: "Original promise" },
             { key: "actualArrival", label: "Actual arrival" },
             { key: "observedAt", label: "Observed at" },
             { key: "provider", label: "Observation provider" },
           ]}
-          scope={`Filtered records: ${items.length}; created ${from || "any date"} through ${to || "any date"} UTC; carrier ${carrier || "all"}; on-time ${metrics.onTime}/${metrics.denominator}; within newest ${shipments.items.length} authorized shipments`}
+          scope={`Filtered records: ${items.length}; created ${from || "any date"} through ${to || "any date"} UTC; carrier ${carrier || "all"}; on-time ${metrics.onTime}/${metrics.denominator}; within ${shipments.items.length} matching shipments`}
         />
       </div>
     </>

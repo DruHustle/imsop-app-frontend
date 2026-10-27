@@ -1,6 +1,11 @@
 /// <reference types="@types/google.maps" />
 
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import land from "@/assets/world-land.json";
+import { MapAsset } from "@/lib/map-types";
+import { statusColor } from "@/lib/overview";
+import { Button } from "./ui/button";
+const Globe = lazy(() => import("./Globe"));
 
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
@@ -81,22 +86,36 @@ function loadMapScript(): Promise<void> {
   return mapScriptPromise;
 }
 
-interface Asset {
-  id: string;
-  label: string;
-  position: google.maps.LatLngLiteral;
-  href?: string;
-}
 interface MapViewProps {
   className?: string;
-  assets?: Asset[];
+  assets?: MapAsset[];
+  selectedId?: string;
+  onSelect?: (id: string) => void;
+  compact?: boolean;
 }
-export function MapView({ className, assets = [] }: MapViewProps) {
+const landPaths = land.map(
+  ring =>
+    ring
+      .map(
+        ([lng, lat], i) =>
+          `${i ? "L" : "M"}${(lng + 180) * 2},${(90 - lat) * 2}`
+      )
+      .join(" ") + "Z"
+);
+export function MapView({
+  className,
+  assets = [],
+  selectedId,
+  onSelect,
+  compact = false,
+}: MapViewProps) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<google.maps.Map | null>(null);
   const [status, setStatus] = useState<"loading" | "google" | "fallback">(
     "loading"
   );
+  const [view, setView] = useState<"map" | "globe">("map"),
+    [globeFailed, setGlobeFailed] = useState(false);
   const { theme } = useTheme();
   const valid = assets.filter(
     a =>
@@ -105,6 +124,13 @@ export function MapView({ className, assets = [] }: MapViewProps) {
       Math.abs(a.position.lat) <= 90 &&
       Math.abs(a.position.lng) <= 180
   );
+  const select = (id: string) => {
+    if (onSelect) onSelect(id);
+    else {
+      const a = valid.find(a => a.id === id);
+      window.location.hash = a?.href ?? `/supply-chain/shipments/${id}`;
+    }
+  };
   useEffect(() => {
     let active = true;
     const previous = window.gm_authFailure;
@@ -139,13 +165,10 @@ export function MapView({ className, assets = [] }: MapViewProps) {
       const marker = new window.google!.maps.Marker({
         map: map.current,
         position: a.position,
-        title: a.label,
+        title: `${a.label} · ${a.status ?? "Status unavailable"}`,
       });
       bounds.extend(a.position);
-      if (a.href)
-        marker.addListener("click", () => {
-          window.location.hash = a.href!;
-        });
+      marker.addListener("click", () => select(a.id));
       return marker;
     });
     if (valid.length) map.current.fitBounds(bounds, 45);
@@ -154,24 +177,28 @@ export function MapView({ className, assets = [] }: MapViewProps) {
         window.google?.maps.event.clearInstanceListeners(marker);
         marker.setMap(null);
       });
-  }, [assets, status]);
+  }, [assets, status, onSelect, view]);
   useEffect(() => {
-    const apply = () =>
+    const apply = () => {
+      const dark = document.documentElement.classList.contains("dark"),
+        css = getComputedStyle(document.documentElement);
       map.current?.setOptions({
-        styles: document.documentElement.classList.contains("dark")
+        styles: dark
           ? [
-              { elementType: "geometry", stylers: [{ color: "#1e3045" }] },
               {
-                elementType: "labels.text.fill",
-                stylers: [{ color: "#bacbdb" }],
+                elementType: "geometry",
+                stylers: [{ color: css.getPropertyValue("--muted").trim() }],
               },
               {
-                elementType: "labels.text.stroke",
-                stylers: [{ color: "#142235" }],
+                elementType: "labels.text.fill",
+                stylers: [
+                  { color: css.getPropertyValue("--muted-foreground").trim() },
+                ],
               },
             ]
           : [],
       });
+    };
     apply();
     const observer = new MutationObserver(apply);
     observer.observe(document.documentElement, {
@@ -181,83 +208,180 @@ export function MapView({ className, assets = [] }: MapViewProps) {
     return () => observer.disconnect();
   }, [theme, status]);
   return (
-    <div className={cn("space-y-3", className)}>
-      <p className="muted text-xs">
-        {status === "google"
-          ? "Map markers from supplied coordinates only."
-          : "Tracking map provider unavailable or not configured. Showing a schematic coordinate view and linked records."}{" "}
-        {valid.length} records have valid coordinates. No destination-based
-        positions are inferred.
-      </p>
+    <div className={cn("shipment-spatial", className)}>
+      <div className="spatial-toolbar">
+        <div className="segmented" aria-label="Spatial view">
+          <Button
+            size="sm"
+            variant={view === "map" ? "default" : "outline"}
+            aria-pressed={view === "map"}
+            onClick={() => setView("map")}
+          >
+            2D map
+          </Button>
+          <Button
+            size="sm"
+            variant={view === "globe" ? "default" : "outline"}
+            aria-pressed={view === "globe"}
+            disabled={globeFailed}
+            onClick={() => setView("globe")}
+          >
+            3D globe
+          </Button>
+        </div>
+        <span className="muted text-xs">{valid.length} recorded positions</span>
+      </div>
       <div
         ref={container}
-        className={status === "google" ? "h-[340px] rounded border" : "hidden"}
+        className={
+          status === "google" && view === "map" ? "provider-map" : "hidden"
+        }
         aria-label="Shipment map"
       />
-      {status !== "google" && (
-        <div className="map-fallback">
-          <svg
-            viewBox="0 0 720 360"
-            role="img"
-            aria-label={`Schematic longitude and latitude plot of ${valid.length} recorded positions. Use the linked coordinate list below.`}
+      {view === "globe" ? (
+        <Suspense fallback={<p role="status">Loading spatial view…</p>}>
+          <Globe
+            assets={valid}
+            selectedId={selectedId}
+            onSelect={select}
+            onUnavailable={() => {
+              setGlobeFailed(true);
+              setView("map");
+            }}
+          />
+        </Suspense>
+      ) : (
+        status !== "google" && (
+          <div className="map-fallback geographic-map">
+            <svg
+              viewBox="0 0 720 360"
+              role="img"
+              aria-label={`Geographic longitude and latitude plot of ${valid.length} recorded positions. Use the record selector below.`}
+            >
+              <rect width="720" height="360" fill="var(--background)" />
+              {[-120, -60, 0, 60, 120].map(x => (
+                <path
+                  key={x}
+                  d={`M${(x + 180) * 2} 0V360`}
+                  stroke="var(--border)"
+                  strokeOpacity=".5"
+                />
+              ))}
+              {[-60, -30, 0, 30, 60].map(y => (
+                <path
+                  key={y}
+                  d={`M0 ${(90 - y) * 2}H720`}
+                  stroke="var(--border)"
+                  strokeOpacity=".5"
+                />
+              ))}
+              {landPaths.map((d, i) => (
+                <path
+                  key={i}
+                  d={d}
+                  fill="var(--muted)"
+                  stroke="var(--border)"
+                  strokeWidth=".5"
+                />
+              ))}
+              {valid.map(a => (
+                <a
+                  href={
+                    onSelect
+                      ? undefined
+                      : `#${a.href ?? `/supply-chain/shipments/${a.id}`}`
+                  }
+                  key={a.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={
+                    onSelect ? `Select ${a.label}` : `Open ${a.label}`
+                  }
+                  onClick={e => {
+                    e.preventDefault();
+                    select(a.id);
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      select(a.id);
+                    }
+                  }}
+                >
+                  <circle
+                    cx={(a.position.lng + 180) * 2}
+                    cy={(90 - a.position.lat) * 2}
+                    r={selectedId === a.id ? 8 : 5}
+                    style={{
+                      fill: statusColor(a.status ?? "In transit"),
+                      stroke:
+                        selectedId === a.id
+                          ? "var(--foreground)"
+                          : "var(--background)",
+                      strokeWidth: 2,
+                    }}
+                  >
+                    <title>
+                      {a.label} · {a.status ?? "Status unavailable"}
+                    </title>
+                  </circle>
+                </a>
+              ))}
+            </svg>
+          </div>
+        )
+      )}
+      {globeFailed && (
+        <p role="status" className="muted text-xs">
+          3D rendering unavailable on this device. The coordinate map and
+          records remain available.
+        </p>
+      )}
+      <p className="muted spatial-note">
+        {status !== "google" && view === "map"
+          ? "Keyless map · Provider unavailable or not configured. "
+          : ""}
+        Source positions only.
+      </p>
+      <details className="chart-values">
+        <summary>Position evidence</summary>
+        <p>
+          Only supplied coordinates are shown; no positions or route paths
+          inferred. Coordinate observation age is unavailable unless supplied.
+        </p>
+      </details>
+      {onSelect && valid.length > 0 && (
+        <label className="field spatial-selector">
+          Inspect a location
+          <select
+            aria-label="Inspect shipment location"
+            value={selectedId ?? ""}
+            onChange={e => onSelect(e.target.value)}
           >
-            <rect width="720" height="360" fill="var(--muted)" />
-            {[-180, -120, -60, 0, 60, 120, 180].map(x => (
-              <g key={x}>
-                <path d={`M${(x + 180) * 2} 0V360`} stroke="var(--border)" />
-                <text
-                  x={(x + 180) * 2 + 4}
-                  y={350}
-                  fontSize="9"
-                  fill="var(--muted-foreground)"
-                >
-                  {x}°
-                </text>
-              </g>
-            ))}
-            {[-60, -30, 0, 30, 60].map(y => (
-              <g key={y}>
-                <path d={`M0 ${(90 - y) * 2}H720`} stroke="var(--border)" />
-                <text
-                  x="5"
-                  y={(90 - y) * 2 - 5}
-                  fontSize="9"
-                  fill="var(--muted-foreground)"
-                >
-                  {y}°
-                </text>
-              </g>
-            ))}
+            <option value="">Select a shipment</option>
             {valid.map(a => (
-              <Link
-                href={a.href ?? `/supply-chain/shipments/${a.id}`}
-                key={a.id}
-                aria-label={`Open ${a.label}`}
-              >
-                <circle
-                  cx={(a.position.lng + 180) * 2}
-                  cy={(90 - a.position.lat) * 2}
-                  r="5"
-                >
-                  <title>{a.label}</title>
-                </circle>
-              </Link>
+              <option value={a.id} key={a.id}>
+                {a.label} · {a.status ?? "Status unavailable"}
+              </option>
             ))}
-          </svg>
+          </select>
+        </label>
+      )}
+      {!compact && (
+        <div className="coordinate-list">
+          {valid.map(a => (
+            <div key={a.id}>
+              <Link href={a.href ?? `/supply-chain/shipments/${a.id}`}>
+                {a.label} ↗
+              </Link>
+              <p className="muted">
+                Latitude {a.position.lat} · Longitude {a.position.lng}
+                {a.status ? ` · ${a.status}` : ""}
+              </p>
+            </div>
+          ))}
         </div>
       )}
-      <div className="coordinate-list">
-        {valid.map(a => (
-          <div key={a.id}>
-            <Link href={a.href ?? `/supply-chain/shipments/${a.id}`}>
-              {a.label} ↗
-            </Link>
-            <p className="muted">
-              Latitude {a.position.lat} · Longitude {a.position.lng}
-            </p>
-          </div>
-        ))}
-      </div>
       {!valid.length && (
         <p className="muted text-sm">
           No valid coordinates in the filtered records. Use List to inspect

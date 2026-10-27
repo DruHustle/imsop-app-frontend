@@ -9,6 +9,8 @@ import {
 } from "react";
 import { User, AuthResponse } from "@/lib/auth-types";
 import { AuthServiceFactory } from "@/lib/auth-factory";
+import { apiAuthService } from "@/lib/api-auth";
+import { toast } from "sonner";
 import { safeLocalStorage, safeSessionStorage } from "@/lib/storage";
 function clearSensitiveState(user?: User | null, logout = false) {
   for (const storage of [safeLocalStorage, safeSessionStorage]) {
@@ -31,7 +33,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (e: string, p: string) => Promise<AuthResponse>;
-  logout: () => void;
+  logout: () => Promise<void>;
   register: (e: string, p: string, n: string) => Promise<AuthResponse>;
   requestPasswordReset: (e: string) => Promise<AuthResponse>;
   resetPassword: (t: string, p: string) => Promise<AuthResponse>;
@@ -67,6 +69,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [getSvc]);
 
+  useEffect(() => {
+    const expire = () => {
+      if (!user || safeLocalStorage.getItem("imsop_token")?.startsWith("mock_"))
+        return;
+      safeSessionStorage.setItem("imsop:return-to", window.location.hash);
+      safeSessionStorage.setItem("imsop:session-expired", "true");
+      clearSensitiveState(user, true);
+      setUser(null);
+      toast.error("Your session expired. Sign in again to continue.");
+    };
+    window.addEventListener("imsop:session-expired", expire);
+    return () => window.removeEventListener("imsop:session-expired", expire);
+  }, [user]);
+
   const handleAuthAction = useCallback(
     async (action: () => Promise<AuthResponse>) => {
       const result = await action();
@@ -90,23 +106,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isLoading,
       login: (e: string, p: string) =>
         handleAuthAction(() => getSvc(e).login(e, p)),
-      logout: () => {
-        getSvc().logout();
+      logout: async () => {
+        const service = getSvc();
         clearSensitiveState(user, true);
         setUser(null);
+        try {
+          await service.logout();
+        } catch {
+          toast.error(
+            "Sign out could not be confirmed. This device is locked out locally; signing in will retry server sign out."
+          );
+        }
       },
       register: (e: string, p: string, n: string) =>
         handleAuthAction(() => getSvc(e).register(e, p, n)),
-      requestPasswordReset: (e: string) => getSvc(e).requestPasswordReset(e),
-      resetPassword: (t: string, p: string) => getSvc().resetPassword(t, p),
+      requestPasswordReset: (e: string) =>
+        apiAuthService.requestPasswordReset(e),
+      resetPassword: async (t: string, p: string) => {
+        const result = await apiAuthService.resetPassword(t, p);
+        if (result.success) {
+          clearSensitiveState(user, true);
+          safeLocalStorage.removeItem("imsop_token");
+          setUser(null);
+          try {
+            await apiAuthService.logout();
+          } catch {
+            toast.error(
+              "Password reset. Server sign out is unconfirmed; sign in will retry it."
+            );
+          }
+        }
+        return result;
+      },
       updateProfile: (u: Partial<Pick<User, "name" | "avatar">>) =>
         user
           ? handleAuthAction(() => getSvc().updateProfile(user.id, u))
           : Promise.resolve({ success: false, error: "Not authenticated" }),
-      changePassword: (c: string, n: string) =>
-        user
-          ? getSvc().changePassword(user.id, c, n)
-          : Promise.resolve({ success: false, error: "Not authenticated" }),
+      changePassword: async (c: string, n: string) => {
+        if (!user) return { success: false, error: "Not authenticated" };
+        const service = getSvc(),
+          result = await service.changePassword(user.id, c, n);
+        if (result.success && service === apiAuthService) {
+          clearSensitiveState(user, true);
+          setUser(null);
+          toast.info("Password changed. Sign in again.");
+        }
+        return result;
+      },
     }),
     [user, isLoading, getSvc, handleAuthAction]
   );

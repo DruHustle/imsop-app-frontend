@@ -1,0 +1,65 @@
+
+> imsop-app@1.0.0 build /Users/andrewgotora/Software Development/GitHub/imsop-app/imsop-app-frontend
+> vite build && pnpm verify:deployment
+
+vite v7.1.9 building for production...
+transforming...
+node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 2442 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/index.html                               2.77 kB │ gzip:   0.87 kB
+../dist/assets/index-Ck8IrMR3.css              150.19 kB │ gzip:  24.94 kB
+../dist/assets/circle-check-big-C2OC5ltq.js      0.36 kB │ gzip:   0.28 kB
+../dist/assets/user-CGGPl6C4.js                  0.37 kB │ gzip:   0.29 kB
+../dist/assets/lock-DcSzBgfi.js                  0.38 kB │ gzip:   0.30 kB
+../dist/assets/mail-6h2fQ712.js                  0.38 kB │ gzip:   0.30 kB
+../dist/assets/NotFound-CjbExKL4.js              0.47 kB │ gzip:   0.33 kB
+../dist/assets/requests-bbDXeGIi.js              0.95 kB │ gzip:   0.61 kB
+../dist/assets/brain-circuit-BPRPMj_H.js         0.97 kB │ gzip:   0.50 kB
+../dist/assets/eye-BCavhLAN.js                   0.97 kB │ gzip:   0.45 kB
+../dist/assets/Forbidden--yPXmzC2.js             1.07 kB │ gzip:   0.66 kB
+../dist/assets/dialog-CSRj_nQe.js                2.78 kB │ gzip:   1.13 kB
+../dist/assets/ShipmentChronology-EEs04Il4.js    3.06 kB │ gzip:   1.37 kB
+../dist/assets/input-BTRiNslu.js                 3.39 kB │ gzip:   1.34 kB
+../dist/assets/ForgotPassword-BzwjYpDa.js        3.69 kB │ gzip:   1.45 kB
+../dist/assets/Register-BOtgawn7.js              4.02 kB │ gzip:   1.49 kB
+../dist/assets/ExportActions-ChCKbXqA.js         4.07 kB │ gzip:   2.06 kB
+../dist/assets/AnalyticsPage-BBdJm6AX.js         4.23 kB │ gzip:   1.74 kB
+../dist/assets/assistant-Dl6gyl6t.js             4.69 kB │ gzip:   1.97 kB
+../dist/assets/Board-wdbp5cuy.js                 4.88 kB │ gzip:   2.03 kB
+../dist/assets/Login-CK4tj8fd.js                 5.14 kB │ gzip:   1.89 kB
+../dist/assets/OverviewCharts-WcXXK79H.js        5.19 kB │ gzip:   1.98 kB
+../dist/assets/ResetPassword-BvMY0pML.js         5.35 kB │ gzip:   1.73 kB
+../dist/assets/RecordDetail-B1gvnN94.js          6.25 kB │ gzip:   2.46 kB
+../dist/assets/Assistant-DHXFXhLZ.js             6.33 kB │ gzip:   2.55 kB
+../dist/assets/Settings--xxLpKPn.js              6.98 kB │ gzip:   2.69 kB
+../dist/assets/Globe-CfOdhq1D.js                 7.65 kB │ gzip:   3.33 kB
+../dist/assets/WorkspaceVisuals-BceY3xpw.js      7.65 kB │ gzip:   2.67 kB
+../dist/assets/Intelligence-Dc713PAy.js          8.76 kB │ gzip:   3.32 kB
+../dist/assets/Infrastructure-C0I2_Oej.js        9.86 kB │ gzip:   3.53 kB
+../dist/assets/Operations-CMfYCfRD.js           10.40 kB │ gzip:   3.55 kB
+../dist/assets/Profile-YeI31XAI.js              10.76 kB │ gzip:   3.63 kB
+../dist/assets/Dashboard-HbtZDiMG.js            10.88 kB │ gzip:   3.94 kB
+../dist/assets/vendor-BN0qJr-I.js               11.92 kB │ gzip:   4.25 kB
+../dist/assets/Orders-B3bN3tsb.js               13.70 kB │ gzip:   4.47 kB
+../dist/assets/Map-Blx7wZx0.js                  92.12 kB │ gzip:  36.61 kB
+../dist/assets/charts-DXdDW3oA.js              443.19 kB │ gzip: 117.35 kB
+../dist/assets/index-BqpwAZXT.js               496.84 kB │ gzip: 154.55 kB
+✓ built in 1m 42s
+
+> imsop-app@1.0.0 verify:deployment /Users/andrewgotora/Software Development/GitHub/imsop-app/imsop-app-frontend
+> node scripts/verify-deployment.mjs
+
+Verified 36 browser chunks use no retired backend

@@ -1,3 +1,4 @@
+import { LiveNotifications } from "./OperationalReview";
 import { useState } from "react";
 import { Link } from "wouter";
 import { Bell } from "lucide-react";
@@ -63,70 +64,30 @@ function ScopedNotifications() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="notification-list">
-        <div className="p-4">
-          <h2>Notifications</h2>
-          <p className="muted text-xs mt-1">
-            {mode === "demo"
-              ? "Demo shipment alerts · scoped to your account"
-              : "Live notification delivery is not configured."}
-          </p>
-        </div>
-        {items.length ? (
+        {mode === "live" ? (
+          <LiveNotifications />
+        ) : (
           <>
-            <div className="actions px-4 pb-3">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!unread}
-                onClick={() =>
-                  update({ ...stored, read: items.map(s => s.id) })
-                }
-              >
-                Mark all read
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() =>
-                  update({
-                    ...stored,
-                    dismissed: [...stored.dismissed, ...items.map(s => s.id)],
-                  })
-                }
-              >
-                Clear all
-              </Button>
+            <div className="p-4">
+              <h2>Notifications</h2>
+              <p className="muted text-xs mt-1">
+                {mode === "demo"
+                  ? "Demo shipment alerts · scoped to your account"
+                  : "Live notification delivery is not configured."}
+              </p>
             </div>
-            {items.map(s => (
-              <article key={s.id} className="notification-item">
-                <strong>
-                  {!stored.read.includes(s.id) && "Unread · "}
-                  {s.trackingNumber}: {s.status}
-                </strong>
-                <p className="muted">
-                  Demo observation: {formatTime(s.observedAt)}
-                </p>
-                <div className="actions">
-                  <Link
-                    href={`/supply-chain/shipments/${s.id}`}
-                    className="record-link"
-                    onClick={() => {
-                      update({ ...stored, read: [...stored.read, s.id] });
-                      setOpen(false);
-                    }}
-                  >
-                    Open shipment
-                  </Link>
+            {items.length ? (
+              <>
+                <div className="actions px-4 pb-3">
                   <Button
                     size="sm"
-                    variant="ghost"
+                    variant="outline"
+                    disabled={!unread}
                     onClick={() =>
-                      update({ ...stored, read: [...stored.read, s.id] })
+                      update({ ...stored, read: items.map(s => s.id) })
                     }
-                    disabled={stored.read.includes(s.id)}
-                    aria-label={`Mark ${s.trackingNumber} read`}
                   >
-                    Mark read
+                    Mark all read
                   </Button>
                   <Button
                     size="sm"
@@ -134,27 +95,74 @@ function ScopedNotifications() {
                     onClick={() =>
                       update({
                         ...stored,
-                        dismissed: [...stored.dismissed, s.id],
+                        dismissed: [
+                          ...stored.dismissed,
+                          ...items.map(s => s.id),
+                        ],
                       })
                     }
-                    aria-label={`Dismiss ${s.trackingNumber}`}
                   >
-                    Dismiss
+                    Clear all
                   </Button>
                 </div>
-              </article>
-            ))}
+                {items.map(s => (
+                  <article key={s.id} className="notification-item">
+                    <strong>
+                      {!stored.read.includes(s.id) && "Unread · "}
+                      {s.trackingNumber}: {s.status}
+                    </strong>
+                    <p className="muted">
+                      Demo observation: {formatTime(s.observedAt)}
+                    </p>
+                    <div className="actions">
+                      <Link
+                        href={`/supply-chain/shipments/${s.id}`}
+                        className="record-link"
+                        onClick={() => {
+                          update({ ...stored, read: [...stored.read, s.id] });
+                          setOpen(false);
+                        }}
+                      >
+                        Open shipment
+                      </Link>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          update({ ...stored, read: [...stored.read, s.id] })
+                        }
+                        disabled={stored.read.includes(s.id)}
+                        aria-label={`Mark ${s.trackingNumber} read`}
+                      >
+                        Mark read
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          update({
+                            ...stored,
+                            dismissed: [...stored.dismissed, s.id],
+                          })
+                        }
+                        aria-label={`Dismiss ${s.trackingNumber}`}
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </article>
+                ))}
+              </>
+            ) : (
+              <div className="notification-item">
+                <p className="muted">
+                  {preferences.shipmentNotifications
+                    ? "No unread or retained demonstration alerts."
+                    : "Demo shipment notifications are disabled in Preferences."}
+                </p>
+              </div>
+            )}
           </>
-        ) : (
-          <div className="notification-item">
-            <p className="muted">
-              {mode === "live"
-                ? "No production delivery or preference API is available. Review shipment exceptions in Supply chain."
-                : preferences.shipmentNotifications
-                  ? "No unread or retained demonstration alerts."
-                  : "Demo shipment notifications are disabled in Preferences."}
-            </p>
-          </div>
         )}
       </PopoverContent>
     </Popover>

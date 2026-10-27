@@ -1,73 +1,40 @@
 # IMSOP frontend
 
-React, TypeScript, Tailwind and Radix workspace for authorized shipment and operational-order reads. The Node API, .NET services, database, and infrastructure remain in the independent [backend repository](https://github.com/DruHustle/imsop-app-backend).
+React/TypeScript workspace for shipment operations, descriptive analytics, deterministic record assistance and durable exception review. The independent [backend repository](https://github.com/DruHustle/imsop-app-backend) owns the Node API, .NET gateway/services, PostgreSQL and deployment.
 
-## Workspace
+Use the [current capability/architecture inventory](https://github.com/DruHustle/imsop-app-backend/blob/main/docs/CURRENT_PLATFORM.md), [API](https://github.com/DruHustle/imsop-app-backend/blob/main/docs/API.md), [deployment](https://github.com/DruHustle/imsop-app-backend/blob/main/docs/DEPLOYMENT.md) and [recovery](https://github.com/DruHustle/imsop-app-backend/blob/main/docs/RECOVERY.md). During coordinated remediation review, use the matching backend branch/PR. Historical public designs are retired and obsolete generated PDFs are removed.
 
-- **Overview:** counts and exception links from the same authorized shipment/order scope.
-- **Supply chain:** shipment search, status/carrier/mode/creation-date filters, sorting, pagination, coordinate view, stable-ID details and provider event history. Orders are Node operational records with their own numeric identities.
-- **Insights:** descriptive analytics with a valid on-time denominator, evidence-review scenarios in Demo mode, and a deterministic data assistant. No model provider or predictive accuracy is claimed.
-- **Infrastructure:** observed API liveness/readiness, explicit freshness, and connector availability. These checks do not establish carrier, SAP, messaging, cloud-resource or whole-platform health.
-- **Account menu:** profile and persisted preferences. The header includes Notifications, global Live/Demo selection and Light/Dark/System selection.
+The existing grouped navigation, responsive cards, navy/slate/cyan identity, themes, role restrictions, shared Live/Demo state, hash routes, stable details and first-party Vercel API proxy remain. New public accounts require explicit workspace provisioning; they cannot read existing operations automatically. Demo identities never authenticate a live request.
 
-Routes and role requirements are defined in `client/src/lib/routes.ts`; Wouter remains the single hash router. Legacy `/operations`, `/analytics`, `/intelligence`, `/assistant`, `/infrastructure`, `/settings` and `/profile` hash destinations are retained. Password reset keeps its existing outer `?token=…#/reset-password` handling. Filters and return destinations use hash query parameters.
+Shipment selection uses authorized server filters and bounded stable-ID pages, then loads the complete matching selection up to 10,000 records. Above that the UI requires narrower filters rather than showing misleading partial totals. Table pages only change presentation; metrics, map and exports use the complete matching selection. Manual refresh, last successful source-read time and independent provider observation time are visible. No fast idle source polling is added. A known older record can be opened/retrieved by its scoped stable ID; Assistant exact-identifier reads are checked when sent.
 
-| Capability | admin | engineer | analyst | user |
-|---|---|---|---|---|
-| Shipments, Overview, Assistant | Yes | Yes | Yes | Yes |
-| Node operational Orders | Yes | Yes | Yes | No |
-| Analytics / reports | Yes | No | Yes | No |
-| Recommendations | Yes | Yes | Yes | No |
-| Infrastructure | Yes | Yes | No | No |
+On-time performance requires explicit actual arrival and a retained original promise. Current ETA revisions do not replace that baseline. Unknown legacy promises/currency remain unknown; amounts are exact source strings, never inferred USD/EUR or mixed-currency totals. HTML is escaped and CSV formula-neutralized. Browser reports remain labelled **Print / Save as PDF** and report only requested downloads, not confirmed browser completion.
 
-The API enforces read and report permissions independently of navigation. Live client exports also check `/api/operations/reports/access` before generating a file or report window.
+Recommendations includes a real exception-review cycle: signed intake creates a workspace case; admin/engineer can acknowledge, assign a permitted operator, add a note, resolve or reopen it. Actions persist with audit history, survive reload and appear in per-user in-app notifications. Resolution does not change carrier status. Integrations shows sanitized configuration and last receipt/observation evidence; old events never establish current connectivity. Purchasing includes item/source currency selection and idempotent warehouse receiving backed by transactional inventory/outbox handling. Review emails use a durable opt-in queue when server delivery is enabled/configured. Forecasts use explicit source observations and a validated optional provider adapter; no model/account/history is invented. Node operational IDs and .NET GUID entities are not merged.
 
-## Source contracts and limits
-
-The workspace reads the **newest 500 authorized records by database ID**, then filters/paginates that explicit scope. Source totals are reported separately; counts are not whole-platform totals. This intentional bound avoids unbounded queries and per-row requests. Older records can be opened by a known stable detail URL, but are outside list, analytic and Assistant scope.
-
-Bounded list APIs require the accompanying backend changes:
-
-- `GET /api/operations/shipments?limit=500&offset=0`
-- `GET /api/operations/orders?limit=500&offset=0`
-- `GET /api/operations/shipments/:id`
-- `GET /api/operations/shipments/:id/events?limit=50&offset=0`
-- `GET /api/operations/orders/:id`
-
-Lists return `{ items, total, limit, offset, source, scope }`. Missing or older contracts produce an unavailable state, never fixture fallback. The typed adapter deliberately maps provider statuses and transport modes, preserves zero values, and separates stable IDs from tracking numbers. `observedAt`, `receivedAt`, and `provider` describe the latest stored event ordered by occurrence time and event ID; they do not timestamp every field of the shipment snapshot. No shipment/order/document associations are invented.
-
-Node `orders` are distinct from .NET `PurchaseOrder` GUIDs, organization/supplier relationships and `ApiResponse<T>` envelopes. Currency, line items, supplier details, and shipment associations absent from Node's contract are shown as unavailable. There is no production shipment-creation workflow or complete purchase-order form. The visible New shipment action explains the integration prerequisite.
-
-## Live and Demo
-
-Real accounts start with loading states and Live reads. Demo identities use deterministic fixtures, explicitly as of **26 October 2026 at 09:00 UTC**. Real users may deliberately select Demo, with their role restrictions retained. Mode applies across every workspace page, map, notification, Assistant answer and export. A demo token or local mode flag never authenticates a production request.
-
-Mode and local preferences are scoped by user identity. Notification read/dismissal state is scoped by user and mode and cleared on logout/account changes. Production notification delivery/preferences are unavailable; live accounts receive no seeded demo notifications. The Assistant keeps conversations only in memory and resets on user/mode changes. It supports known tracking/order numbers, counts and exception summaries; it does not execute actions or invent causes/forecasts. Overview/detail queries open for review and require one explicit send.
-
-On-time rate counts delivered records with both actual and estimated arrival timestamps. Numerator is actual arrival at or before the estimate; denominator is all eligible deliveries. No costs, revenue, savings or model accuracy are inferred.
-
-The map is secondary to List. Only valid supplied coordinates become markers. Google Maps remains optional; unavailable/keyless operation uses an explicitly schematic longitude/latitude plot and linked coordinate list. Marker updates and listeners are cleaned up as the selected scope changes. Missing coordinates remain inspectable in List.
-
-## Appearance and accessibility
-
-Light and dark palettes cover the shell, operational pages, auth, menus and dialogs. System theme changes are observed. Reduced-motion and contrast preferences persist; operating-system reduced motion is always respected. The mobile drawer supports keyboard use, Escape and destination closing, and restores focus to the selected page. Mobile advanced filters use a disclosure to keep shipment cards near the search field.
-
-Reports export the filtered scope with data mode, source, date/filter scope and generation time. HTML values/titles are escaped; CSV formula prefixes are neutralized. Browser reports use the label **Print / Save as PDF**. Empty scopes, permission failures and blocked report windows have explicit behavior; browser download completion cannot be verified, so the UI only reports that a download was requested.
-
-## Local development and validation
+Recovery accepts both previously used link formats, rejects ambiguous duplicate tokens, scrubs the URL and retains the credential only in document memory. Failed submissions can retry; reload requires reopening the mail link. Recovery deliberately uses the real API even during a live/demo session. Registration/reset/change guidance follows the real 12–128 policy. Expired/revoked sessions clear sensitive state and offer reauthentication to the previous route. Unconfirmed server logout blocks local automatic session restoration and is retried before login.
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm dev
 pnpm exec tsc --noEmit
 pnpm test
-pnpm build
+VITE_BASE_PATH=/ pnpm build
 pnpm e2e
 pnpm audit --prod --audit-level=moderate
 ```
 
-`pnpm build` includes retired-endpoint verification across lazy chunks. E2E starts its own preview on **4188** with server reuse disabled, preventing accidental tests of unrelated applications. Every production API response and provider failure is isolated in fixtures; no production writes or provider contacts are required.
+`pnpm build` includes retired-endpoint verification over lazy chunks. Root-base builds retain first-party Vercel calls; default `/imsop-app-frontend/` supports Pages. Existing `VITE_API_URL`, unified API-origin logic and optional `VITE_GOOGLE_MAPS_API_KEY` remain. Maps stay secondary and missing coordinates remain inspectable.
 
-`VITE_BASE_PATH=/` builds for Vercel; the default `/imsop-app-frontend/` supports GitHub Pages. `VITE_API_URL` and the existing unified `api-origin.ts` resolution preserve first-party production proxy behavior. Brand URLs use Vite's base path. Optional Google Maps configuration remains `VITE_GOOGLE_MAPS_API_KEY`.
+Ordinary E2E uses isolated browser fixtures and preview port 4188. Actual system/browser tests are separate:
 
-[Verification evidence and measurements](verification/RESULTS.md) records exact local checks, screenshots, known limits and hosted-navigation reproduction. Local verification does not deploy either repository. Historical architecture/design documents describe earlier aspirations and must not be treated as integration evidence.
+```sh
+# First run the companion backend's documented isolated Compose/PostgreSQL/gateway suites.
+pnpm exec playwright test --config playwright.system.config.ts
+```
+
+The system suite uses real PostgreSQL, Node, YARP, .NET and memory-only SMTP/transport sinks. It contains no API route fulfillment. It verifies emitted links, identity modes, persistence, notifications, exact Assistant context and replay; only disposable test passwords/data change. The preview proxy on 4189 is enabled only for the exact local system API URL and does not alter production routing.
+
+[Current review and closure](docs/remediation/CLOSURE.md) · [Current verification](verification/remediation/RESULTS.md) · [Historical verification](verification/RESULTS.md). No production merge/deployment/provider connection is performed by this remediation.
+
+The graphical Overview combines an authorized creation-time chart, status distribution, actionable exceptions and geographic map/optional 3D globe. Workspaces use distinct evidence visuals, with keyboard controls, mobile layouts and the existing themes. See [visual design and data semantics](docs/remediation/DESIGN_REFERENCE.md) and [final verification](verification/remediation/FOLLOWUP.md).

@@ -90,11 +90,8 @@ export default function Profile() {
       toast.error("Passwords do not match");
       return;
     }
-    if (
-      newPassword.length < (demoIdentity ? 6 : 12) ||
-      newPassword.length > 128
-    ) {
-      toast.error(`Password must be ${demoIdentity ? 6 : 12}–128 characters`);
+    if (newPassword.length < 12 || newPassword.length > 128) {
+      toast.error(`Password must be 12–128 characters`);
       return;
     }
 
@@ -118,7 +115,6 @@ export default function Profile() {
 
   const handleLogout = () => {
     logout();
-    toast.success("Logged out successfully");
   };
 
   const getInitials = (name: string | null | undefined) => {

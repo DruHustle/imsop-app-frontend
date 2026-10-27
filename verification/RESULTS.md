@@ -106,3 +106,7 @@ The new separate 180px Apple touch icon is 47,488 bytes. The original raster bra
 - Keyless/provider-failure mapping has an explicitly schematic coordinate/list fallback. Configured Google Maps lifecycle behavior is tested with a local SDK double, not a paid provider or real key.
 - Browser print and download completion depend on the browser/user. The interface avoids claiming delivery or a PDF file was produced.
 - Two low production dependency advisories remain below the repository's mandatory audit threshold.
+
+## Current remediation record
+
+The report above is dated historical evidence. For the 27 October 2026 remediation and supplied-board implementation, see [current results](remediation/RESULTS.md) and [closure matrix](../docs/remediation/CLOSURE.md). Its former local no-push/no-deploy statement describes that earlier session, not the later merged baseline or this remediation branch.

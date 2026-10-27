@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { ReadError, readSource, useData } from "@/contexts/DataContext";
 import { demoShipments, demoOrders, demoEvents } from "@/lib/demo-data";
@@ -20,6 +20,9 @@ import {
 } from "@/components/Workspace";
 import { Button } from "@/components/ui/button";
 import { useHashQuery } from "@/lib/hash-location";
+const ShipmentChronology = lazy(
+  () => import("@/components/ShipmentChronology")
+);
 interface Props {
   kind: "shipments" | "orders";
   id: string;
@@ -49,7 +52,9 @@ function Detail({ kind, id, tracking = false }: Props) {
   const back =
     returnTo &&
     (returnTo === `/supply-chain/${kind}` ||
-      returnTo.startsWith(`/supply-chain/${kind}?`))
+      returnTo.startsWith(`/supply-chain/${kind}?`) ||
+      returnTo === "/" ||
+      returnTo.startsWith("/?"))
       ? returnTo
       : `/supply-chain/${kind}`;
   useEffect(() => {
@@ -112,13 +117,11 @@ function Detail({ kind, id, tracking = false }: Props) {
         ← Return to filtered {kind}
       </Link>
       <PageHeader
-        eyebrow={
-          kind === "shipments" ? "Shipment detail" : "Node operational order"
-        }
+        eyebrow={kind === "shipments" ? "Shipment detail" : "Operational order"}
         title={
           shipment?.trackingNumber ?? order?.orderNumber ?? "Record detail"
         }
-        description={`Stable ${kind === "shipments" ? "shipment" : "Node order"} record ID: ${id}. This is an authorized read, with no operational side effects.`}
+        description={`Review ${kind === "shipments" ? "shipment" : "order"} ${id}, its latest evidence and next steps.`}
       />
       <SourceNote />
       {kind === "shipments" && (
@@ -169,6 +172,13 @@ function Detail({ kind, id, tracking = false }: Props) {
                 title="Tracking events"
                 description="Provider observation and receipt times are preserved. No event payload is interpreted as a current provider connection."
               >
+                {events.length > 0 && (
+                  <Suspense
+                    fallback={<p role="status">Loading event chronology…</p>}
+                  >
+                    <ShipmentChronology events={events} href={base + suffix} />
+                  </Suspense>
+                )}
                 {events.length ? (
                   events.map(e => (
                     <article className="event-row" key={e.id}>
@@ -276,8 +286,8 @@ function Detail({ kind, id, tracking = false }: Props) {
                       <div>
                         <dt>Source amount</dt>
                         <dd>
-                          {order.totalAmount ?? "Not supplied"} · Currency not
-                          supplied
+                          {order.totalAmount ?? "Not supplied"} ·{" "}
+                          {order.currency ?? "Currency unknown"}
                         </dd>
                       </div>
                       <div>
@@ -293,7 +303,7 @@ function Detail({ kind, id, tracking = false }: Props) {
               <p className="muted text-xs">
                 {shipment
                   ? "This shipment contract has no authorized order or document association."
-                  : "This Node order contract supplies no line items, supplier, currency or shipment association."}
+                  : "Line items, supplier and shipment associations are not supplied."}
               </p>
               <Link
                 className="record-link inline-block mt-3 text-xs"

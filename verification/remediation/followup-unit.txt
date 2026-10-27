@@ -1,0 +1,53 @@
+
+> imsop-app@1.0.0 test /Users/andrewgotora/Software Development/GitHub/imsop-app/imsop-app-frontend
+> vitest run && node --test scripts/verify-deployment.test.mjs
+
+
+ RUN  v2.1.9 /Users/andrewgotora/Software Development/GitHub/imsop-app/imsop-app-frontend
+
+ ✓ client/src/lib/api-origin.test.ts (3 tests) 2ms
+ ✓ client/src/lib/recovery.test.ts (3 tests) 22ms
+ ✓ client/src/lib/api-auth.test.ts (4 tests) 9ms
+ ✓ client/src/lib/assistant.test.ts (4 tests) 10ms
+ ✓ client/src/lib/overview.test.ts (5 tests) 19ms
+ ✓ client/src/__tests__/components.test.tsx (13 tests) 85ms
+ ✓ client/src/lib/auth.test.ts (6 tests) 1509ms
+   ✓ Auth Service > MockAuthService > should login with valid demo credentials 502ms
+   ✓ Auth Service > MockAuthService > should fail with invalid credentials 502ms
+   ✓ Auth Service > MockAuthService > should logout and clear session 502ms
+
+ Test Files  7 passed (7)
+      Tests  38 passed (38)
+   Start at  15:17:42
+   Duration  2.82s (transform 456ms, setup 0ms, collect 1.45s, tests 1.66s, environment 5.04s, prepare 641ms)
+
+TAP version 13
+# Subtest: rejects stale lazy Operations chunks even when the entry bundle is clean
+ok 1 - rejects stale lazy Operations chunks even when the entry bundle is clean
+  ---
+  duration_ms: 4.707167
+  ...
+# Subtest: accepts same-origin and Oracle bundles
+ok 2 - accepts same-origin and Oracle bundles
+  ---
+  duration_ms: 2.050625
+  ...
+# Subtest: does not pass an absent build
+ok 3 - does not pass an absent build
+  ---
+  duration_ms: 0.952041
+  ...
+# Subtest: purchasing keeps first-party cookie requests out of the SPA fallback
+ok 4 - purchasing keeps first-party cookie requests out of the SPA fallback
+  ---
+  duration_ms: 0.677417
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.874333

@@ -1,3 +1,4 @@
+import { safeSessionStorage } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,8 +30,15 @@ export default function Login() {
     try {
       const result = await login(email, password);
       if (result.success) {
-        toast.success("Login successful!");
-        navigate("/");
+        const destination = safeSessionStorage.getItem("imsop:return-to");
+        safeSessionStorage.removeItem("imsop:return-to");
+        safeSessionStorage.removeItem("imsop:session-expired");
+        navigate(
+          destination?.startsWith("#/") &&
+            !/^#\/(login|reset-password|forgot-password)/.test(destination)
+            ? destination.slice(1)
+            : "/"
+        );
       } else {
         toast.error(result.error || "Login failed");
       }
@@ -56,8 +64,28 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+    <div
+      className="min-h-screen flex items-center justify-center bg-background bg-cover bg-center p-4 relative"
+      style={{
+        backgroundImage: `url("${import.meta.env.BASE_URL}images/hero-bg.jpg")`,
+      }}
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-black/50"
+      />
       <Card className="w-full max-w-md glass-panel border-border relative z-10 animate-in fade-in zoom-in duration-500">
+        {safeSessionStorage.getItem("imsop:session-expired") && (
+          <p role="status" className="p-4 text-sm">
+            Your session expired. Sign in to return to your work.
+          </p>
+        )}
+        {safeSessionStorage.getItem("imsop:signout-pending") && (
+          <p role="alert" className="p-4 text-sm">
+            Server sign out was not confirmed. This device is locked locally.
+            Signing in retries sign out first.
+          </p>
+        )}
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 rounded bg-primary flex items-center justify-center ">

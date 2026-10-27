@@ -1,9 +1,17 @@
+import { AnswerVisual } from "@/components/WorkspaceVisuals";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
+import { readSource } from "@/contexts/DataContext";
+import { formatTime, normalizeShipment, normalizeOrder } from "@/lib/workspace";
 import { useData } from "@/contexts/DataContext";
-import { PageHeader, Panel, SourceNote } from "@/components/Workspace";
+import {
+  PageHeader,
+  Panel,
+  SourceNote,
+  StatusBadge,
+} from "@/components/Workspace";
 import { Button } from "@/components/ui/button";
-import { answerQuestion, Answer } from "@/lib/assistant";
+import { answerQuestion, extractIdentifiers, Answer } from "@/lib/assistant";
 import { useHashQuery } from "@/lib/hash-location";
 export default function Assistant() {
   const { mode } = useData();
@@ -30,35 +38,125 @@ function Session() {
     },
     []
   );
-  const send = (q = query) => {
+  const requestRef = useRef<AbortController | null>(null);
+  useEffect(() => () => requestRef.current?.abort("disposed"), []);
+  const send = async (q = query) => {
     if (!q.trim() || sending) return;
     last.current = q;
     setSending(true);
     setNotice("");
     setQuery("");
-    timer.current = setTimeout(() => {
-      setMessages(m => [
-        ...m,
-        { question: q, answer: answerQuestion(q, shipments, orders, mode) },
-      ]);
-      setSending(false);
-      timer.current = null;
-    }, 180);
+    const controller = new AbortController();
+    requestRef.current?.abort();
+    requestRef.current = controller;
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        timer.current = setTimeout(() => {
+          timer.current = null;
+          resolve();
+        }, 180);
+        controller.signal.addEventListener(
+          "abort",
+          () => {
+            if (timer.current) clearTimeout(timer.current);
+            reject(new Error("Cancelled"));
+          },
+          { once: true }
+        );
+      });
+      let s = shipments,
+        o = orders;
+      if (mode === "live") {
+        const tokens = extractIdentifiers(q, [
+          ...shipments.items.map(s => s.trackingNumber),
+          ...orders.items.map(o => o.orderNumber),
+        ]);
+        let shipmentItems = [...shipments.items],
+          orderItems = [...orders.items];
+        const item = params.get("item");
+        if (item) {
+          const match = /^(shipment|order):([1-9]\d*)$/.exec(item);
+          if (!match)
+            throw new Error(
+              "The requested record context is invalid. Open its detail page again."
+            );
+          const row = await readSource(
+            `/api/operations/${match[1] === "shipment" ? "shipments" : "orders"}/${match[2]}`,
+            controller.signal
+          );
+          if (match[1] === "shipment") shipmentItems = [normalizeShipment(row)];
+          else orderItems = [normalizeOrder(row)];
+        }
+        // Resolve exact identifiers through authorized APIs, including records outside list memory.
+        const resolved = await Promise.all(
+          tokens.map(async token => {
+            const result = await readSource(
+              `/api/operations/shipments?limit=100&identifier=${encodeURIComponent(token)}`,
+              controller.signal
+            );
+            const orderResult =
+              orders.status === "forbidden"
+                ? { items: [] }
+                : await readSource(
+                    `/api/operations/orders?limit=100&identifier=${encodeURIComponent(token)}`,
+                    controller.signal
+                  );
+            return {
+              s: result.items.map(normalizeShipment),
+              o: orderResult.items.map(normalizeOrder),
+            };
+          })
+        );
+        for (const row of resolved) {
+          shipmentItems.push(...row.s);
+          orderItems.push(...row.o);
+        }
+        s = {
+          ...shipments,
+          status: "ready",
+          items: Array.from(
+            new Map(shipmentItems.map(i => [i.id, i])).values()
+          ),
+        };
+        o = {
+          ...orders,
+          items: Array.from(new Map(orderItems.map(i => [i.id, i])).values()),
+        };
+      }
+      if (!controller.signal.aborted)
+        setMessages(m => [
+          ...m,
+          { question: q, answer: answerQuestion(q, s, o, mode) },
+        ]);
+    } catch (e) {
+      if (!controller.signal.aborted)
+        setNotice(
+          e instanceof Error ? e.message : "Record context could not be read."
+        );
+      else if (
+        controller.signal.reason !== "user-cancel" &&
+        controller.signal.reason !== "disposed"
+      )
+        setNotice("The context read timed out. Retry your question.");
+    } finally {
+      clearTimeout(timeout);
+      if (requestRef.current === controller) setSending(false);
+    }
   };
   const unavailable =
     shipments.status === "unavailable" || orders.status === "unavailable";
   return (
     <>
       <PageHeader
-        eyebrow="Insights / authorized context"
         title="Assistant"
-        description="A deterministic data assistant for shipment and operational order lookups. No model provider is configured; answers do not perform actions."
+        description="Ask about the records you can access"
       />
       <SourceNote />
       {params.get("item") && (
         <p className="muted text-xs">
-          Requested context: {params.get("item")}. Review the query and send
-          once. Context must be present in your authorized dataset.
+          A record is selected. Review your question before sending; its current
+          details will be checked with your answer.
         </p>
       )}
       {unavailable && (
@@ -70,7 +168,7 @@ function Session() {
         </div>
       )}
       <Panel
-        title="Ask about the selected dataset"
+        title="Data assistant"
         description="Use a known tracking/order number, ask for a shipment summary, or review exceptions."
       >
         <div
@@ -116,7 +214,63 @@ function Session() {
                 <p className="eyebrow">
                   {mode === "demo" ? "Demo data assistant" : "Data assistant"}
                 </p>
-                <p>{m.answer.text}</p>
+                {m.answer.records && m.answer.records.length > 0 && (
+                  <AnswerVisual records={m.answer.records} />
+                )}
+                {m.answer.records && m.answer.records.length > 1 ? (
+                  <>
+                    <p>Comparison from the records you can access.</p>
+                    <div className="compact-table-wrap assistant-comparison">
+                      <table className="data-table compact-table">
+                        <thead>
+                          <tr>
+                            <th>Record</th>
+                            <th>Route / customer</th>
+                            <th>Recorded status</th>
+                            <th>Last observation</th>
+                            <th>
+                              <span className="sr-only">Open</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {m.answer.records.map(record => (
+                            <tr key={record.key}>
+                              <td>
+                                {record.identifier}
+                                <span className="freshness">{record.kind}</span>
+                              </td>
+                              <td>{record.route}</td>
+                              <td>
+                                <StatusBadge value={record.status} />
+                              </td>
+                              <td>{formatTime(record.observedAt)}</td>
+                              <td>
+                                <Link
+                                  className="record-link"
+                                  href={record.href}
+                                >
+                                  Open →
+                                </Link>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {m.answer.unresolved?.map(message => (
+                      <p key={message} className="muted text-sm">
+                        {message}
+                      </p>
+                    ))}
+                    <details className="source-details">
+                      <summary>Record evidence and limitations</summary>
+                      <p>{m.answer.text}</p>
+                    </details>
+                  </>
+                ) : (
+                  <p>{m.answer.text}</p>
+                )}
                 {m.answer.links.map(l => (
                   <Link key={l.href} href={l.href}>
                     {l.label} ↗
@@ -173,6 +327,7 @@ function Session() {
               onClick={() => {
                 if (timer.current) clearTimeout(timer.current);
                 timer.current = null;
+                requestRef.current?.abort("user-cancel");
                 setSending(false);
                 setNotice("Question cancelled.");
                 setQuery(last.current);

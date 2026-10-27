@@ -1,3 +1,7 @@
+import { OrderStages } from "@/components/WorkspaceVisuals";
+import { utcDay } from "@/lib/overview";
+import { Purchasing } from "@/components/Purchasing";
+import { RecordPreview } from "@/components/Board";
 import { Link, useLocation } from "wouter";
 import { useHashQuery } from "@/lib/hash-location";
 import { useData } from "@/contexts/DataContext";
@@ -27,7 +31,13 @@ export default function Orders() {
   };
   const detail = (id: string) =>
     `/supply-chain/orders/${id}?return=${encodeURIComponent(path + (params.size ? "?" + params : ""))}`;
-  const items = orders.items.filter(
+  const cohort = orders.items.filter(
+    o =>
+      (!params.get("from") || utcDay(o.createdAt) >= params.get("from")!) &&
+      (!params.get("to") ||
+        (!!utcDay(o.createdAt) && utcDay(o.createdAt) <= params.get("to")!))
+  );
+  const items = cohort.filter(
     o =>
       (!q ||
         [o.orderNumber, o.customerId ?? ""]
@@ -36,20 +46,27 @@ export default function Orders() {
           .includes(q.toLowerCase())) &&
       (!status || o.status === status)
   );
+  const selected = items.find(item => item.id === params.get("selected"));
   const pages = Math.max(1, Math.ceil(items.length / 10));
   const current = Math.min(page, pages);
   const slice = items.slice((current - 1) * 10, current * 10);
   return (
     <>
       <PageHeader
-        eyebrow="Supply chain"
         title="Orders"
-        description="Read authorized Node operational orders. Amounts retain the source value; no currency is supplied by this contract."
+        description="Review incoming orders and their progress"
       />
       <SourceNote
         count={orders.status === "ready" ? orders.items.length : undefined}
         total={orders.total}
       />
+      {orders.status === "ready" && (
+        <OrderStages
+          items={cohort}
+          selected={status}
+          onSelect={value => set("status", value)}
+        />
+      )}
       <Panel>
         <div className="filter-toolbar">
           <label className="field">
@@ -66,6 +83,7 @@ export default function Orders() {
           <label className="field">
             Order status
             <select
+              aria-label="Order status"
               value={status}
               onChange={e => {
                 set("status", e.target.value);
@@ -115,17 +133,29 @@ export default function Orders() {
                 </thead>
                 <tbody>
                   {slice.map(o => (
-                    <tr key={o.id}>
+                    <tr
+                      key={o.id}
+                      className={selected?.id === o.id ? "selected-row" : ""}
+                    >
                       <td>
                         <Link className="record-link" href={detail(o.id)}>
                           {o.orderNumber}
                         </Link>
-                        <span className="freshness">Node record #{o.id}</span>
+                        <button
+                          className="record-preview-button"
+                          data-preview-key={`order:${o.id}`}
+                          aria-label={`Preview ${o.orderNumber}`}
+                          onClick={() => set("selected", o.id)}
+                        >
+                          Preview →
+                        </button>
                       </td>
                       <td>{o.customerId ?? "Not supplied"}</td>
                       <td>
                         {o.totalAmount ?? "Not supplied"}
-                        <span className="freshness">Currency not supplied</span>
+                        <span className="freshness">
+                          {o.currency ?? "Currency unknown"}
+                        </span>
                       </td>
                       <td>{formatTime(o.createdAt)}</td>
                       <td>
@@ -147,8 +177,17 @@ export default function Orders() {
                   </div>
                   <p className="muted text-xs mt-3">
                     Customer {o.customerId ?? "not supplied"} · Amount{" "}
-                    {o.totalAmount ?? "not supplied"} (currency unknown)
+                    {o.totalAmount ?? "not supplied"} (
+                    {o.currency ?? "currency unknown"})
                   </p>
+                  <button
+                    className="record-preview-button"
+                    data-preview-key={`order:${o.id}`}
+                    aria-label={`Preview ${o.orderNumber}`}
+                    onClick={() => set("selected", o.id)}
+                  >
+                    Preview →
+                  </button>
                   <div className="card-bottom mt-3">
                     <span>{formatTime(o.createdAt)}</span>
                     <Link className="record-link" href={detail(o.id)}>
@@ -182,6 +221,13 @@ export default function Orders() {
           </>
         )}
       </Panel>
+      {selected && (
+        <RecordPreview
+          order={selected}
+          href={detail(selected.id)}
+          onClose={() => set("selected", "")}
+        />
+      )}
       <div className="actions">
         <ExportActions
           name="operational-orders"
@@ -190,7 +236,8 @@ export default function Orders() {
             { key: "id", label: "Node record ID" },
             { key: "orderNumber", label: "Order number" },
             { key: "customerId", label: "Customer ID" },
-            { key: "totalAmount", label: "Amount (currency unknown)" },
+            { key: "totalAmount", label: "Amount" },
+            { key: "currency", label: "Currency (blank if unknown)" },
             { key: "status", label: "Status" },
             { key: "createdAt", label: "Created at" },
             { key: "source", label: "Source" },
@@ -198,15 +245,7 @@ export default function Orders() {
           scope={`${items.length} filtered of newest ${orders.items.length} operational orders; search=${q}; status=${status || "all"}`}
         />
       </div>
-      <Panel title="Purchase orders are a separate service">
-        <p className="muted text-xs">
-          The .NET supply-chain service uses PurchaseOrder GUIDs, organization
-          and supplier relationships, and an ApiResponse envelope. It exposes no
-          authorized list or supplier/organization selection workflow here.
-          Purchase-order creation and cross-service associations are unavailable
-          in this workspace.
-        </p>
-      </Panel>
+      <Purchasing />
     </>
   );
 }

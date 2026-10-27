@@ -10,7 +10,7 @@ test("auth links and reset token handling survive the shell redesign", async ({
   ).toBeVisible();
   await page.getByRole("button", { name: "Forgot password?" }).click();
   await expect(page).toHaveURL(/#\/forgot-password/);
-  await page.goto("/?token=preserved-reset-token#/reset-password");
+  await page.goto("/?token=synthetic.reset.token#/reset-password");
   await expect(page.getByLabel("New Password", { exact: true })).toBeVisible();
   await page.goto("/#/register");
   await expect(

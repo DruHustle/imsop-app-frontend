@@ -5,7 +5,31 @@ import { useData, Source } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { routes, permitted, routeFor } from "@/lib/routes";
 import { DEMO_AS_OF, formatTime, isStale, Shipment } from "@/lib/workspace";
-import { AlertCircle, ArrowUpRight, Database, RefreshCw } from "lucide-react";
+import {
+  Truck,
+  Package,
+  AlertTriangle,
+  ClipboardList,
+  CheckCircle2,
+  BarChart3,
+  Activity,
+  Clock3,
+  AlertCircle,
+  ArrowUpRight,
+  Database,
+  RefreshCw,
+} from "lucide-react";
+const metricIcons = {
+  shipments: Truck,
+  active: Package,
+  attention: AlertTriangle,
+  orders: ClipboardList,
+  delivered: CheckCircle2,
+  performance: BarChart3,
+  health: Activity,
+  time: Clock3,
+  database: Database,
+};
 export function PageHeader({
   eyebrow,
   title,
@@ -61,17 +85,26 @@ export function Metric({
   value,
   description,
   href,
+  kind,
+  visual,
 }: {
+  kind?: keyof typeof metricIcons;
+  visual?: ReactNode;
   label: string;
   value: ReactNode;
   description: string;
   href?: string;
 }) {
+  const Icon = kind ? metricIcons[kind] : undefined;
   const content = (
     <>
+      {Icon && (
+        <Icon className={`metric-icon ${kind}`} size={24} aria-hidden="true" />
+      )}
       <span className="metric-label">{label}</span>
       <strong>{value}</strong>
       <span className="muted text-xs">{description}</span>
+      {visual && <div className="metric-visual">{visual}</div>}
       {href && <ArrowUpRight className="metric-arrow" size={16} />}
     </>
   );
@@ -86,9 +119,17 @@ export function Metric({
 export function StatusBadge({ value }: { value: string }) {
   const tone = ["Healthy", "Delivered", "Completed"].includes(value)
     ? "good"
-    : ["Delayed", "Exception", "Unavailable", "Degraded"].includes(value)
+    : ["Exception", "Unavailable", "Degraded"].includes(value)
       ? "bad"
-      : ["Pending", "Stale", "Unknown", "Not configured"].includes(value)
+      : [
+            "Delayed",
+            "Pending",
+            "Stale",
+            "Unknown",
+            "Not configured",
+            "open",
+            "acknowledged",
+          ].includes(value)
         ? "warn"
         : "neutral";
   return (
@@ -135,7 +176,10 @@ export function SourceState<T>({
     return (
       <EmptyState
         title="Access denied"
-        description="Your role cannot read this source. The API enforces this permission."
+        description={
+          source.error ??
+          "Your role cannot read this source. Ask your administrator for access."
+        }
       />
     );
   if (source.status === "unavailable")
@@ -168,19 +212,27 @@ export function SourceNote({
   count?: number;
   total?: number;
 }) {
-  const { mode } = useData();
+  const { mode, lastShipmentReadAt, refresh } = useData();
   return (
     <div className={`source-note ${mode === "demo" ? "demo-note" : ""}`}>
       <Database size={14} aria-hidden="true" />
       <span>
         {mode === "demo"
           ? `Demo dataset · As of ${formatTime(DEMO_AS_OF)}`
-          : "Live · Node operational database snapshot"}
+          : "Live · Workspace records"}
         {count !== undefined &&
-          ` · ${count} records in scope${total !== undefined ? ` of ${total}` : ""}`}
+          ` · ${count} ${count === 1 ? "record" : "records"} in scope${total !== undefined ? ` of ${total}` : ""}`}
         {mode === "live" &&
-          " · Scope: newest 500 records · Provider connectivity unknown"}
+          ` · Complete matching selection · Last read: ${formatTime(lastShipmentReadAt)}`}
       </span>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={refresh}
+        aria-label="Refresh workspace records"
+      >
+        <RefreshCw size={14} /> Refresh
+      </Button>
     </div>
   );
 }
@@ -205,12 +257,30 @@ export function SectionNav() {
     </nav>
   );
 }
-export function Freshness({ shipment }: { shipment: Shipment }) {
+export function Freshness({
+  shipment,
+  compact = false,
+}: {
+  shipment: Shipment;
+  compact?: boolean;
+}) {
   const { mode } = useData();
+  const observation = shipment.observedAt
+    ? compact
+      ? new Date(shipment.observedAt).toLocaleString(undefined, {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "UTC",
+        }) + " UTC"
+      : formatTime(shipment.observedAt)
+    : null;
   return (
-    <span className="freshness">
+    <span className="freshness" title={formatTime(shipment.observedAt)}>
       {shipment.observedAt
-        ? `${isStale(shipment, mode === "demo" ? DEMO_AS_OF : Date.now()) ? "Stale · " : ""}Observed ${formatTime(shipment.observedAt)}`
+        ? `${isStale(shipment, mode === "demo" ? DEMO_AS_OF : Date.now()) ? "Stale · " : ""}Observed ${observation}`
         : "Observation time unknown"}
     </span>
   );
