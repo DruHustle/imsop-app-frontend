@@ -120,10 +120,13 @@ export function ReviewEvidence({
     [selected, setSelected] = useState("");
   const exceptions = items.filter(isException),
     now = mode === "demo" ? Date.parse(DEMO_AS_OF) : Date.now();
+  const observedOrder = (s: Shipment) => {
+    const time = Date.parse(s.observedAt ?? "");
+    return Number.isFinite(time) ? time : Infinity;
+  };
   const candidates = [...exceptions].sort((a, b) =>
     scenario === "oldest"
-      ? (Date.parse(a.observedAt ?? "") || 0) -
-        (Date.parse(b.observedAt ?? "") || 0)
+      ? observedOrder(a) - observedOrder(b)
       : Number(b.status === "Exception") - Number(a.status === "Exception")
   );
   const record = exceptions.find(s => s.id === selected);
@@ -150,10 +153,12 @@ export function ReviewEvidence({
       </div>
       <div className="evidence-lanes">
         {(scenario === "oldest"
-          ? ["Exception", "Delayed"].sort(
-              (a, b) =>
-                candidates.findIndex(s => s.status === a) -
-                candidates.findIndex(s => s.status === b)
+          ? Array.from(
+              new Set([
+                ...candidates.map(s => s.status),
+                "Exception",
+                "Delayed",
+              ])
             )
           : ["Exception", "Delayed"]
         ).map(status => (

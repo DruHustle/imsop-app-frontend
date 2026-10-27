@@ -223,7 +223,7 @@ export default function Dashboard() {
                   points={activity.points
                     .map(
                       (p, i) =>
-                        `${(i / (activity.points.length - 1)) * 100},${22 - (p.created / Math.max(1, ...activity.points.map(p => p.created))) * 20}`
+                        `${(i / (activity.points.length - 1)) * 100},${22 - (p.created / maxCreated) * 20}`
                     )
                     .join(" ")}
                 />
