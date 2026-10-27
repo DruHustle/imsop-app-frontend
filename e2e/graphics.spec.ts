@@ -64,7 +64,14 @@ test("graphical overview keeps scopes, chart totals, locations and selected reco
   const canvas = page.locator(".shipment-globe");
   if (await canvas.isVisible()) {
     for (const theme of ["light", "dark"]) {
-      await page.getByLabel("Theme", { exact: true }).selectOption(theme);
+      await page
+        .getByRole("radiogroup", { name: "Theme", exact: true })
+        .getByRole("radio", {
+          name:
+            { light: "Light", dark: "Dark", system: "Auto" }[theme] + " theme",
+          exact: true,
+        })
+        .click();
       await canvas.focus();
       await page.keyboard.press("ArrowRight");
       await page

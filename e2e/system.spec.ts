@@ -170,18 +170,27 @@ test("preferences change rendered colors, respect system changes, and persist ef
   page,
 }) => {
   await loginDemo(page);
-  await page.getByLabel("Theme", { exact: true }).selectOption("light");
+  await page
+    .getByRole("radiogroup", { name: "Theme", exact: true })
+    .getByRole("radio", { name: "Light theme", exact: true })
+    .click();
   const light = await page
     .locator("body")
     .evaluate(el => getComputedStyle(el).backgroundColor);
   expect(light).toBe("rgb(243, 246, 250)");
-  await page.getByLabel("Theme", { exact: true }).selectOption("dark");
+  await page
+    .getByRole("radiogroup", { name: "Theme", exact: true })
+    .getByRole("radio", { name: "Dark theme", exact: true })
+    .click();
   expect(
     await page
       .locator("body")
       .evaluate(el => getComputedStyle(el).backgroundColor)
   ).toBe("rgb(13, 23, 37)");
-  await page.getByLabel("Theme", { exact: true }).selectOption("system");
+  await page
+    .getByRole("radiogroup", { name: "Theme", exact: true })
+    .getByRole("radio", { name: "Auto theme", exact: true })
+    .click();
   await page.emulateMedia({ colorScheme: "light" });
   await expect(page.locator("html")).toHaveClass("light");
   await page.emulateMedia({ colorScheme: "dark" });
@@ -239,7 +248,12 @@ test("analytics date scope changes calculations and export records", async ({
   await navigate(page, "Analytics");
   await page.getByLabel("Created from").fill("2026-10-10");
   await page.getByLabel("Created through").fill("2026-10-10");
-  await expect(page.getByRole("button", { name: "Filter carrier Maersk, 1 shipments", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", {
+      name: "Filter carrier Maersk, 1 shipments",
+      exact: true,
+    })
+  ).toBeVisible();
   const promise = page.waitForEvent("download");
   await page.getByRole("button", { name: "CSV · filtered" }).click();
   const file = await promise;

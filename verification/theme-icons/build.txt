@@ -1,0 +1,70 @@
+
+> imsop-app@1.0.0 build /Users/andrewgotora/Software Development/GitHub/imsop-app/imsop-app-frontend
+> vite build && pnpm verify:deployment
+
+vite v7.1.9 building for production...
+transforming...
+node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js (400:0): A comment
+
+"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+
+in "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js (74:0): A comment
+
+"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+ * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+ * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+
+in "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 2447 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/index.html                               2.77 kB │ gzip:   0.87 kB
+../dist/assets/index-Dh2RO_Sh.css              151.33 kB │ gzip:  25.12 kB
+../dist/assets/circle-check-big-BNJcPomj.js      0.36 kB │ gzip:   0.28 kB
+../dist/assets/user-gGOGHShd.js                  0.37 kB │ gzip:   0.29 kB
+../dist/assets/lock-B3eiaDJE.js                  0.38 kB │ gzip:   0.29 kB
+../dist/assets/mail-BOZbbD-P.js                  0.38 kB │ gzip:   0.30 kB
+../dist/assets/NotFound-Bt-K5Q3V.js              0.47 kB │ gzip:   0.33 kB
+../dist/assets/requests-Bw6SOzEx.js              0.95 kB │ gzip:   0.61 kB
+../dist/assets/brain-circuit-SBirm60T.js         0.97 kB │ gzip:   0.50 kB
+../dist/assets/eye-T6Lpzbww.js                   0.97 kB │ gzip:   0.45 kB
+../dist/assets/Forbidden-Bys2RGo4.js             1.07 kB │ gzip:   0.66 kB
+../dist/assets/dialog-dR2GiP8U.js                2.78 kB │ gzip:   1.13 kB
+../dist/assets/ShipmentChronology-D3V02eOl.js    3.06 kB │ gzip:   1.37 kB
+../dist/assets/input-B9z3fWRM.js                 3.39 kB │ gzip:   1.34 kB
+../dist/assets/ForgotPassword-CQd1f5i0.js        3.69 kB │ gzip:   1.45 kB
+../dist/assets/Register-Dh-Dd34Y.js              4.02 kB │ gzip:   1.48 kB
+../dist/assets/ExportActions-0O8wE2dw.js         4.07 kB │ gzip:   2.06 kB
+../dist/assets/AnalyticsPage-Ck_KShbg.js         4.23 kB │ gzip:   1.74 kB
+../dist/assets/assistant-BrtQB64S.js             4.69 kB │ gzip:   1.97 kB
+../dist/assets/Board-D6uJL89M.js                 4.88 kB │ gzip:   2.03 kB
+../dist/assets/OverviewCharts-BEc0XSD5.js        5.19 kB │ gzip:   1.98 kB
+../dist/assets/ResetPassword-D3NTFHRG.js         5.35 kB │ gzip:   1.73 kB
+../dist/assets/Login-CgN8OOo-.js                 5.60 kB │ gzip:   2.05 kB
+../dist/assets/RecordDetail-CwpJdBov.js          6.25 kB │ gzip:   2.46 kB
+../dist/assets/Assistant-DY6XhP9Q.js             6.33 kB │ gzip:   2.55 kB
+../dist/assets/Settings-Cqwehgpq.js              6.70 kB │ gzip:   2.63 kB
+../dist/assets/Globe-Dk3V7hu5.js                 7.65 kB │ gzip:   3.33 kB
+../dist/assets/WorkspaceVisuals-B1_Bwrrs.js      7.65 kB │ gzip:   2.67 kB
+../dist/assets/Intelligence-DakLLeqX.js          8.76 kB │ gzip:   3.32 kB
+../dist/assets/Infrastructure-Cjbt6ZyE.js        9.86 kB │ gzip:   3.53 kB
+../dist/assets/Operations-9ixnptdR.js           10.40 kB │ gzip:   3.55 kB
+../dist/assets/Profile-CY1zvAKC.js              10.76 kB │ gzip:   3.64 kB
+../dist/assets/Dashboard-BJRCbpug.js            10.88 kB │ gzip:   3.94 kB
+../dist/assets/vendor-BN0qJr-I.js               11.92 kB │ gzip:   4.25 kB
+../dist/assets/Orders-x8-hRGSE.js               13.70 kB │ gzip:   4.48 kB
+../dist/assets/Map-D2nceLfN.js                  92.12 kB │ gzip:  36.61 kB
+../dist/assets/charts-DXdDW3oA.js              443.19 kB │ gzip: 117.35 kB
+../dist/assets/index-UiJkZv_Z.js               505.31 kB │ gzip: 157.13 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 11.10s
+
+> imsop-app@1.0.0 verify:deployment /Users/andrewgotora/Software Development/GitHub/imsop-app/imsop-app-frontend
+> node scripts/verify-deployment.mjs
+
+Verified 36 browser chunks use no retired backend

@@ -100,7 +100,14 @@ test("demo Live selection requests real authentication, preserves the route and 
   await expect(page.locator(".demo-note")).toHaveCount(0);
   expect(logins).toBe(1);
   for (const theme of ["light", "dark"] as const) {
-    await page.getByLabel("Theme", { exact: true }).selectOption(theme);
+    await page
+      .getByRole("radiogroup", { name: "Theme", exact: true })
+      .getByRole("radio", {
+        name:
+          { light: "Light", dark: "Dark", system: "Auto" }[theme] + " theme",
+        exact: true,
+      })
+      .click();
     await expect(page.locator("html")).toHaveClass(new RegExp(theme));
     await page.evaluate(() => {
       (document.activeElement as HTMLElement)?.blur();
