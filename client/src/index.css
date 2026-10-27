@@ -1103,9 +1103,9 @@
   .shipment-card .card-bottom { align-items: end; font-size: 11px; }
 }
 /* IMSOP boards: a shared operational layout for all eight workspaces. */
-:root { --chart-bar: #9bd6ff; }
-.dark { --chart-bar: #24658d; }
-.sidebar { width: 220px; background: linear-gradient(150deg,#142c43,#102436 80%); }
+:root { --chart-bar: color-mix(in srgb,var(--primary) 35%,var(--card)); }
+.dark { --chart-bar: color-mix(in srgb,var(--primary) 35%,var(--card)); }
+.sidebar { width: 220px; background: var(--sidebar); }
 .shell-content { margin-left: 220px; }
 .brand { font-size: 22px; padding: 24px 21px; letter-spacing: .2px; }
 .brand small { letter-spacing: .2px; font-size: 10px; text-transform: none; }
@@ -1119,11 +1119,11 @@
 .nav-group > p > span, .nav-group-toggle > span { display: flex; align-items: center; gap: 10px; }
 .nav-link { font-size: 12px; padding: 9px 12px 9px 28px; border-radius: 4px; }
 .nav-overview .nav-link { padding-left: 12px; text-transform: uppercase; letter-spacing: .4px; }
-.nav-link[aria-current] { padding-left: 26px; color: #fff; background: linear-gradient(100deg,#176185,#17465f); border-left: 3px solid #27d8f3; }
+.nav-link[aria-current] { padding-left: 26px; color: #7ae0ee; background: #1b3d50; border-left: 3px solid #66cddd; }
 .nav-overview .nav-link[aria-current] { padding-left: 9px; }
 .sidebar-footer { padding: 18px; }
 .sidebar-profile { display: flex; align-items: center; gap: 10px; color: #f0f6fc; }
-.sidebar-profile .avatar-initial { flex-shrink: 0; background: #cfdae5; color: #17314a; font-size: 11px; }
+.sidebar-profile .avatar-initial { flex-shrink: 0; background: var(--muted); color: var(--foreground); font-size: 11px; }
 .sidebar-profile > span:nth-child(2) { flex: 1; min-width: 0; }
 .sidebar-profile strong { display: block; font-size: 11px; overflow-wrap: anywhere; }
 .sidebar-profile small { display: block; color: #9cb4c9; font-size: 10px; text-transform: capitalize; }
@@ -1146,7 +1146,7 @@
 .metric { display: grid; grid-template-columns: 28px minmax(0,1fr); column-gap: 14px; row-gap: 4px; padding: 17px 18px; }
 .metric-icon { grid-column: 1; grid-row: 1 / 4; color: var(--primary); margin-top: 4px; }
 .metric-icon.active, .metric-icon.delivered { color: var(--good); }
-.metric-icon.attention { color: #e79519; }
+.metric-icon.attention { color: var(--warn); }
 .metric-label, .metric > strong, .metric > .muted { grid-column: 2; }
 .metric > strong { font-size: 27px; font-weight: 730; letter-spacing: -.8px; }
 .metric-label { font-size: 11px; }
@@ -1164,13 +1164,13 @@
 .status-badge.warn { background: color-mix(in srgb,var(--warn) 14%,var(--card)); }
 .status-badge.bad { background: color-mix(in srgb,var(--bad) 12%,var(--card)); }
 .status-badge > span { display: none; }
-.status-stack { display: flex; border-radius: 6px; overflow: hidden; min-height: 32px; color: #092537; font-size: 11px; font-weight: 700; }
+.status-stack { display: flex; border-radius: 6px; overflow: hidden; min-height: 32px; color: var(--primary-foreground); font-size: 11px; font-weight: 700; }
 .status-stack > div { display: grid; place-items: center; min-width: 18px; }
-[data-status="Delivered"] { background: #41bf83; }
-[data-status="In transit"] { background: #59abf5; }
-[data-status="Delayed"] { background: #ffca58; }
-[data-status="Exception"] { background: #f47b84; }
-[data-status="Pending"], [data-status="Other"], [data-status="Cancelled"] { background: #b6c7da; }
+[data-status="Delivered"] { background: var(--color-chart-3); }
+[data-status="In transit"] { background: var(--primary); }
+[data-status="Delayed"] { background: var(--color-chart-4); }
+[data-status="Exception"] { background: var(--bad); }
+[data-status="Pending"], [data-status="Other"], [data-status="Cancelled"] { background: var(--color-chart-5); }
 .status-legend { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
 .status-chart-row { display: flex; align-items: center; gap: 8px; font-size: 11px; }
 .status-chart-row strong { font-variant-numeric: tabular-nums; }
@@ -1267,14 +1267,5 @@
 .data-table td { padding: 12px; }
 .records-layout.has-preview .data-table td { padding: 11px 10px; }
 .records-layout .freshness { font-size: 9px; line-height: 1.4; margin-top: 5px; }
-/* Retain the established IMSOP palette in both themes; boards define layout only. */
-.sidebar { background: var(--sidebar); }
-.nav-link[aria-current] { background: #1b3d50; color: #7ae0ee; border-left-color: #66cddd; }
-.sidebar-profile .avatar-initial { background: var(--muted); color: var(--foreground); }
-.metric-icon.attention { color: var(--warn); }
-:root, .dark { --chart-bar: color-mix(in srgb,var(--primary) 35%,var(--card)); }
-[data-status="Delivered"] { background: var(--color-chart-3); }
-[data-status="In transit"] { background: var(--primary); }
-[data-status="Delayed"] { background: var(--color-chart-4); }
-[data-status="Exception"] { background: var(--bad); }
-[data-status="Pending"], [data-status="Other"], [data-status="Cancelled"] { background: var(--color-chart-5); }
+
+/* Board layouts use the established theme, accent and semantic colour tokens. */
