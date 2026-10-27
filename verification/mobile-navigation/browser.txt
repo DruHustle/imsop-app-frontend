@@ -1,0 +1,156 @@
+[1A[2K[2m[WebServer] [22m(node:90432) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:90453) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22mnode_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js (400:0): A comment
+[2m[WebServer] [22m
+[2m[WebServer] [22m"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+[2m[WebServer] [22m
+[2m[WebServer] [22min "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+
+[1A[2K[2m[WebServer] [22mnode_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js (74:0): A comment
+[2m[WebServer] [22m
+[2m[WebServer] [22m"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+[2m[WebServer] [22m * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+[2m[WebServer] [22m * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+[2m[WebServer] [22m
+[2m[WebServer] [22min "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+
+[1A[2K[2m[WebServer] [22m
+[2m[WebServer] [22m(!) Some chunks are larger than 500 kB after minification. Consider:
+[2m[WebServer] [22m- Using dynamic import() to code-split the application
+[2m[WebServer] [22m- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[2m[WebServer] [22m- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+[1A[2K[2m[WebServer] [22m(node:90535) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:90558) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:90560) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[2m[WebServer] [22m(node:90579) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 102 tests using 1 worker
+
+[1A[2K[1/102] [chromium] › e2e/api-routing.spec.ts:3:1 › live requests use the session origin, bounded queries and cookie credentials
+[1A[2K[2/102] [chromium] › e2e/api-routing.spec.ts:44:3 › live 403 sources never fall back to demo
+[1A[2K[3/102] [chromium] › e2e/api-routing.spec.ts:44:3 › live 503 sources never fall back to demo
+[1A[2K[4/102] [chromium] › e2e/api-routing.spec.ts:66:1 › empty live source preserves zero and differs from no matching results
+[1A[2K[5/102] [chromium] › e2e/api-routing.spec.ts:77:1 › slow live sources start loading and obsolete reads cannot replace Demo data
+[1A[2K[6/102] [chromium] › e2e/api-routing.spec.ts:109:1 › live details preserve stable IDs, provenance, stale observation and missing associations
+[1A[2K[7/102] [chromium] › e2e/api-routing.spec.ts:137:1 › live assistant uses permitted records and infrastructure remains honestly scoped
+[1A[2K[8/102] [chromium] › e2e/api-routing.spec.ts:181:1 › client report export requires the backend report permission check
+[1A[2K[9/102] [chromium] › e2e/api-routing.spec.ts:195:3 › engineer has no report bypass and standard users retain Assistant
+[1A[2K[10/102] [chromium] › e2e/api-routing.spec.ts:195:3 › user has no report bypass and standard users retain Assistant
+[1A[2K[11/102] [chromium] › e2e/api-routing.spec.ts:215:1 › configured map markers synchronize with filters, omit missing coordinates and open details
+[1A[2K[12/102] [chromium] › e2e/auth.smoke.spec.ts:4:1 › auth links and reset token handling survive the shell redesign
+[1A[2K[13/102] [chromium] › e2e/auth.smoke.spec.ts:22:1 › pointer navigation opens the shipment workspace and drawer closes
+[1A[2K[14/102] [chromium] › e2e/boards.spec.ts:4:1 › the eight-tab shell highlights only the current tab and group controls work
+[1A[2K[15/102] [chromium] › e2e/boards.spec.ts:48:1 › demo reviews persist explicit local actions and comparisons show each requested record
+[1A[2K[16/102] [chromium] › e2e/boards.spec.ts:94:1 › board layouts preserve the established theme tokens, dark backgrounds and system behavior
+[1A[2K[17/102] [chromium] › e2e/graphics.spec.ts:4:1 › graphical overview keeps scopes, chart totals, locations and selected records synchronized
+[1A[2K[chromium] › e2e/graphics.spec.ts:4:1 › graphical overview keeps scopes, chart totals, locations and selected records synchronized
+Actual WebGL globe rendered, orbited and zoomed in both themes
+
+[1A[2K(node:90606) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[18/102] [chromium] › e2e/graphics.spec.ts:107:1 › unique workspace visuals support selecting evidence and filtering records
+[1A[2K[19/102] [chromium] › e2e/graphics.spec.ts:145:1 › historical replay selects explicit event locations and pauses without inventing paths
+[1A[2K[20/102] [chromium] › e2e/live-mode.spec.ts:11:1 › demo Live selection requests real authentication, preserves the route and removes all demo evidence
+[1A[2K[21/102] [chromium] › e2e/live-mode.spec.ts:133:1 › a real account switches from Demo to Live without demo dates or counts while the source loads
+[1A[2K[22/102] [chromium] › e2e/live-mode.spec.ts:171:1 › Live selection keeps demo evidence off when membership has not been provisioned
+[1A[2K[23/102] [chromium] › e2e/mobile-navigation.spec.ts:18:1 › mobile navigation trigger and all sidebar destinations stay reachable on short, narrow screens
+[1A[2K[24/102] [chromium] › e2e/mobile-navigation.spec.ts:113:1 › each mobile sidebar destination opens and the page heading clears the sticky header
+[1A[2K[25/102] [chromium] › e2e/mobile-navigation.spec.ts:144:1 › mobile navigation restores expanded sections and keeps role permissions
+[1A[2K[26/102] [chromium] › e2e/system.spec.ts:6:3 › admin retains role boundaries and Assistant access
+[1A[2K[27/102] [chromium] › e2e/system.spec.ts:6:3 › engineer retains role boundaries and Assistant access
+[1A[2K[28/102] [chromium] › e2e/system.spec.ts:6:3 › analyst retains role boundaries and Assistant access
+[1A[2K[29/102] [chromium] › e2e/system.spec.ts:6:3 › demo retains role boundaries and Assistant access
+[1A[2K[30/102] [chromium] › e2e/system.spec.ts:38:1 › filters, summaries, map markers, pagination and exports share their visible scope
+[1A[2K[31/102] [chromium] › e2e/system.spec.ts:85:1 › shipment details, events, reload and return preserve list filters and history
+[1A[2K[32/102] [chromium] › e2e/system.spec.ts:113:1 › keyboard navigation and Escape close the mobile drawer
+[1A[2K[33/102] [chromium] › e2e/system.spec.ts:141:1 › Overview query opens once and Assistant grounds known and unknown records
+[1A[2K[34/102] [chromium] › e2e/system.spec.ts:169:1 › preferences change rendered colors, respect system changes, and persist effective behavior
+[1A[2K[35/102] [chromium] › e2e/system.spec.ts:220:1 › demo notifications persist read state, link to records, and honor preferences
+[1A[2K[36/102] [chromium] › e2e/system.spec.ts:244:1 › analytics date scope changes calculations and export records
+[1A[2K[37/102] [chromium] › e2e/system.spec.ts:265:1 › creation prerequisite, blocked print and no-match states have useful behavior
+[1A[2K[38/102] [chromium] › e2e/system.spec.ts:294:1 › profile update, password validation, logout cleanup and 404 recovery still work
+[1A[2K[39/102] [chromium] › e2e/system.spec.ts:342:1 › Assistant cancellation prevents a late answer and restores the question
+[1A[2K[40/102] [chromium] › e2e/theme-icons.spec.ts:10:1 › theme icons offer explicit Light, Dark and Auto, persist Auto and follow device changes
+[1A[2K[41/102] [chromium] › e2e/theme-icons.spec.ts:84:1 › theme icons fit narrow and tablet headers without clipping or hiding actions
+[1A[2K[42/102] [chromium] › e2e/visual.spec.ts:7:5 › visual populated light responsive verification
+[1A[2K[43/102] [chromium] › e2e/visual.spec.ts:7:5 › visual populated dark responsive verification
+[1A[2K[44/102] [chromium] › e2e/visual.spec.ts:7:5 › visual empty light responsive verification
+[1A[2K[45/102] [chromium] › e2e/visual.spec.ts:7:5 › visual empty dark responsive verification
+[1A[2K[46/102] [chromium] › e2e/visual.spec.ts:7:5 › visual loading light responsive verification
+[1A[2K[47/102] [chromium] › e2e/visual.spec.ts:7:5 › visual loading dark responsive verification
+[1A[2K[48/102] [chromium] › e2e/visual.spec.ts:7:5 › visual error light responsive verification
+[1A[2K[49/102] [chromium] › e2e/visual.spec.ts:7:5 › visual error dark responsive verification
+[1A[2K[50/102] [chromium] › e2e/visual.spec.ts:82:3 › visual secondary workspaces light
+[1A[2K[51/102] [chromium] › e2e/visual.spec.ts:82:3 › visual secondary workspaces dark
+[1A[2K[52/102] [mobile-chromium] › e2e/api-routing.spec.ts:3:1 › live requests use the session origin, bounded queries and cookie credentials
+[1A[2K[53/102] [mobile-chromium] › e2e/api-routing.spec.ts:44:3 › live 403 sources never fall back to demo
+[1A[2K[54/102] [mobile-chromium] › e2e/api-routing.spec.ts:44:3 › live 503 sources never fall back to demo
+[1A[2K[55/102] [mobile-chromium] › e2e/api-routing.spec.ts:66:1 › empty live source preserves zero and differs from no matching results
+[1A[2K[56/102] [mobile-chromium] › e2e/api-routing.spec.ts:77:1 › slow live sources start loading and obsolete reads cannot replace Demo data
+[1A[2K[57/102] [mobile-chromium] › e2e/api-routing.spec.ts:109:1 › live details preserve stable IDs, provenance, stale observation and missing associations
+[1A[2K[58/102] [mobile-chromium] › e2e/api-routing.spec.ts:137:1 › live assistant uses permitted records and infrastructure remains honestly scoped
+[1A[2K[59/102] [mobile-chromium] › e2e/api-routing.spec.ts:181:1 › client report export requires the backend report permission check
+[1A[2K[60/102] [mobile-chromium] › e2e/api-routing.spec.ts:195:3 › engineer has no report bypass and standard users retain Assistant
+[1A[2K[61/102] [mobile-chromium] › e2e/api-routing.spec.ts:195:3 › user has no report bypass and standard users retain Assistant
+[1A[2K[62/102] [mobile-chromium] › e2e/api-routing.spec.ts:215:1 › configured map markers synchronize with filters, omit missing coordinates and open details
+[1A[2K[63/102] [mobile-chromium] › e2e/auth.smoke.spec.ts:4:1 › auth links and reset token handling survive the shell redesign
+[1A[2K[64/102] [mobile-chromium] › e2e/auth.smoke.spec.ts:22:1 › pointer navigation opens the shipment workspace and drawer closes
+[1A[2K[65/102] [mobile-chromium] › e2e/boards.spec.ts:4:1 › the eight-tab shell highlights only the current tab and group controls work
+[1A[2K[66/102] [mobile-chromium] › e2e/boards.spec.ts:48:1 › demo reviews persist explicit local actions and comparisons show each requested record
+[1A[2K[67/102] [mobile-chromium] › e2e/boards.spec.ts:94:1 › board layouts preserve the established theme tokens, dark backgrounds and system behavior
+[1A[2K[68/102] [mobile-chromium] › e2e/graphics.spec.ts:4:1 › graphical overview keeps scopes, chart totals, locations and selected records synchronized
+[1A[2K[mobile-chromium] › e2e/graphics.spec.ts:4:1 › graphical overview keeps scopes, chart totals, locations and selected records synchronized
+Actual WebGL globe rendered, orbited and zoomed in both themes
+
+[1A[2K(node:93922) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1A[2K[69/102] [mobile-chromium] › e2e/graphics.spec.ts:107:1 › unique workspace visuals support selecting evidence and filtering records
+[1A[2K[70/102] [mobile-chromium] › e2e/graphics.spec.ts:145:1 › historical replay selects explicit event locations and pauses without inventing paths
+[1A[2K[71/102] [mobile-chromium] › e2e/live-mode.spec.ts:11:1 › demo Live selection requests real authentication, preserves the route and removes all demo evidence
+[1A[2K[72/102] [mobile-chromium] › e2e/live-mode.spec.ts:133:1 › a real account switches from Demo to Live without demo dates or counts while the source loads
+[1A[2K[73/102] [mobile-chromium] › e2e/live-mode.spec.ts:171:1 › Live selection keeps demo evidence off when membership has not been provisioned
+[1A[2K[74/102] [mobile-chromium] › e2e/mobile-navigation.spec.ts:18:1 › mobile navigation trigger and all sidebar destinations stay reachable on short, narrow screens
+[1A[2K[75/102] [mobile-chromium] › e2e/mobile-navigation.spec.ts:113:1 › each mobile sidebar destination opens and the page heading clears the sticky header
+[1A[2K[76/102] [mobile-chromium] › e2e/mobile-navigation.spec.ts:144:1 › mobile navigation restores expanded sections and keeps role permissions
+[1A[2K[77/102] [mobile-chromium] › e2e/system.spec.ts:6:3 › admin retains role boundaries and Assistant access
+[1A[2K[78/102] [mobile-chromium] › e2e/system.spec.ts:6:3 › engineer retains role boundaries and Assistant access
+[1A[2K[79/102] [mobile-chromium] › e2e/system.spec.ts:6:3 › analyst retains role boundaries and Assistant access
+[1A[2K[80/102] [mobile-chromium] › e2e/system.spec.ts:6:3 › demo retains role boundaries and Assistant access
+[1A[2K[81/102] [mobile-chromium] › e2e/system.spec.ts:38:1 › filters, summaries, map markers, pagination and exports share their visible scope
+[1A[2K[82/102] [mobile-chromium] › e2e/system.spec.ts:85:1 › shipment details, events, reload and return preserve list filters and history
+[1A[2K[83/102] [mobile-chromium] › e2e/system.spec.ts:113:1 › keyboard navigation and Escape close the mobile drawer
+[1A[2K[84/102] [mobile-chromium] › e2e/system.spec.ts:141:1 › Overview query opens once and Assistant grounds known and unknown records
+[1A[2K[85/102] [mobile-chromium] › e2e/system.spec.ts:169:1 › preferences change rendered colors, respect system changes, and persist effective behavior
+[1A[2K[86/102] [mobile-chromium] › e2e/system.spec.ts:220:1 › demo notifications persist read state, link to records, and honor preferences
+[1A[2K[87/102] [mobile-chromium] › e2e/system.spec.ts:244:1 › analytics date scope changes calculations and export records
+[1A[2K[88/102] [mobile-chromium] › e2e/system.spec.ts:265:1 › creation prerequisite, blocked print and no-match states have useful behavior
+[1A[2K[89/102] [mobile-chromium] › e2e/system.spec.ts:294:1 › profile update, password validation, logout cleanup and 404 recovery still work
+[1A[2K[90/102] [mobile-chromium] › e2e/system.spec.ts:342:1 › Assistant cancellation prevents a late answer and restores the question
+[1A[2K[91/102] [mobile-chromium] › e2e/theme-icons.spec.ts:10:1 › theme icons offer explicit Light, Dark and Auto, persist Auto and follow device changes
+[1A[2K[92/102] [mobile-chromium] › e2e/theme-icons.spec.ts:84:1 › theme icons fit narrow and tablet headers without clipping or hiding actions
+[1A[2K[93/102] [mobile-chromium] › e2e/visual.spec.ts:7:5 › visual populated light responsive verification
+[1A[2K[94/102] [mobile-chromium] › e2e/visual.spec.ts:7:5 › visual populated dark responsive verification
+[1A[2K[95/102] [mobile-chromium] › e2e/visual.spec.ts:7:5 › visual empty light responsive verification
+[1A[2K[96/102] [mobile-chromium] › e2e/visual.spec.ts:7:5 › visual empty dark responsive verification
+[1A[2K[97/102] [mobile-chromium] › e2e/visual.spec.ts:7:5 › visual loading light responsive verification
+[1A[2K[98/102] [mobile-chromium] › e2e/visual.spec.ts:7:5 › visual loading dark responsive verification
+[1A[2K[99/102] [mobile-chromium] › e2e/visual.spec.ts:7:5 › visual error light responsive verification
+[1A[2K[100/102] [mobile-chromium] › e2e/visual.spec.ts:7:5 › visual error dark responsive verification
+[1A[2K[101/102] [mobile-chromium] › e2e/visual.spec.ts:82:3 › visual secondary workspaces light
+[1A[2K[102/102] [mobile-chromium] › e2e/visual.spec.ts:82:3 › visual secondary workspaces dark
+[1A[2K  102 passed (5.0m)
