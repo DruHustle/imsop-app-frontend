@@ -33,7 +33,7 @@ for (const identity of ["signed out", "live", "demo"])
         (
           await request.post("http://127.0.0.1:18067/api/auth/register", {
             headers: { Origin: "http://127.0.0.1:4189" },
-          data: { email, password, name: "Recovery Verification" },
+            data: { email, password, name: "Recovery Verification" },
           })
         ).status()
       ).toBe(201);
@@ -62,7 +62,7 @@ for (const identity of ["signed out", "live", "demo"])
         (
           await request.post("http://127.0.0.1:18067/api/auth/request-reset", {
             headers: { Origin: "http://127.0.0.1:4189" },
-          data: { email },
+            data: { email },
           })
         ).status()
       ).toBe(202);
@@ -116,7 +116,7 @@ for (const identity of ["signed out", "live", "demo"])
         (
           await request.post("http://127.0.0.1:18067/api/auth/login", {
             headers: { Origin: "http://127.0.0.1:4189" },
-          data: { email, password: "Matrix-replacement-password-123" },
+            data: { email, password: "Matrix-replacement-password-123" },
           })
         ).status()
       ).toBe(200);

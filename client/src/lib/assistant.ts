@@ -2,7 +2,8 @@ export function extractIdentifiers(
   question: string,
   known: string[] = []
 ): string[] {
-  const exact = known.filter(id => {
+  const spans: { id: string; start: number; end: number }[] = [];
+  for (const id of known) {
     const text = question.toLowerCase(),
       identity = id.toLowerCase();
     let offset = text.indexOf(identity);
@@ -13,21 +14,33 @@ export function extractIdentifiers(
         (!before || !/[a-z0-9_-]/i.test(before)) &&
         (!after || !/[a-z0-9_-]/i.test(after))
       )
-        return true;
+        spans.push({ id, start: offset, end: offset + identity.length });
       offset = text.indexOf(identity, offset + 1);
     }
-    return false;
-  });
-  const candidates =
-    question.match(/\b[A-Z0-9][A-Z0-9_.:-]*[0-9][A-Z0-9_.:-]*\b/gi) ?? [];
+  }
+  for (const match of Array.from(
+    question.matchAll(
+      /\b[A-Z0-9][A-Z0-9_.:-]*[0-9][A-Z0-9_.:-]*\b|(?<![A-Z0-9_.:-])(?:SHP|ORD)-[A-Z0-9_-]+(?![A-Z0-9_.:-])/gi
+    )
+  ))
+    spans.push({
+      id: match[0],
+      start: match.index!,
+      end: match.index! + match[0].length,
+    });
+  // A complete identifier owns its text span, including punctuation. Never
+  // interpret a suffix or an internal numeric segment as another requested ID.
+  const complete = spans.filter(
+    span =>
+      !spans.some(
+        other =>
+          other.start <= span.start &&
+          other.end >= span.end &&
+          (other.start < span.start || other.end > span.end)
+      )
+  );
   return Array.from(
-    new Map(
-      [
-        ...exact,
-        ...candidates,
-        ...(question.match(/\b(?:SHP|ORD)-[A-Z0-9_-]+\b/gi) ?? []),
-      ].map(id => [id.toLowerCase(), id])
-    ).values()
+    new Map(complete.map(({ id }) => [id.toLowerCase(), id])).values()
   ).slice(0, 10);
 }
 import { Source } from "@/contexts/DataContext";

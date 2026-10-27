@@ -1,5 +1,5 @@
 import { it, expect } from "vitest";
-import { answerQuestion } from "./assistant";
+import { answerQuestion, extractIdentifiers } from "./assistant";
 import { normalizeShipment, normalizeOrder, performance } from "./workspace";
 const ready = <T>(items: T[]) => ({
   status: "ready" as const,
@@ -76,4 +76,21 @@ it("matches carrier identifiers containing punctuation exactly", () => {
   expect(
     answerQuestion("Look up ACME(77)", s, ready([]), "live").links[0].href
   ).toBe("/supply-chain/shipments/1");
+  expect(extractIdentifiers("Look up ACME(77)", ["ACME(77)"])).toEqual([
+    "ACME(77)",
+  ]);
+});
+
+it("does not invent shorter identifiers inside full tracking numbers", () => {
+  expect(
+    extractIdentifiers("Compare SYSTEM-SHP-10 and SYSTEM-SHP-1", [
+      "SYSTEM-SHP-10",
+      "SHP-10",
+      "SHP-1",
+    ])
+  ).toEqual(["SYSTEM-SHP-10", "SYSTEM-SHP-1"]);
+  expect(extractIdentifiers("Look up SHP-10.2", ["SHP-10"])).toEqual([
+    "SHP-10.2",
+  ]);
+  expect(extractIdentifiers("Look up SHP-ABC", [])).toEqual(["SHP-ABC"]);
 });

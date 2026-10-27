@@ -154,8 +154,8 @@ function Session() {
       <SourceNote />
       {params.get("item") && (
         <p className="muted text-xs">
-          Requested context: {params.get("item")}. Review the query and send
-          once. The record will be checked when you send.
+          A record is selected. Review your question before sending; its current
+          details will be checked with your answer.
         </p>
       )}
       {unavailable && (

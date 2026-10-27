@@ -107,11 +107,34 @@ test("real signed intake, persisted review actions, reload, notifications and ex
       "In-app review notifications · External delivery unavailable"
     )
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Mark read", exact: true })
-    .first()
-    .click();
+  const notifications = page.locator('[data-slot="popover-content"]');
+  await expect(notifications.getByRole("article").first()).toContainText(
+    "Unread ·"
+  );
+  const [readResponse] = await Promise.all([
+    page.waitForResponse(
+      r => r.url().includes("/read") && r.request().method() === "POST"
+    ),
+    notifications
+      .getByRole("button", { name: "Mark read", exact: true })
+      .first()
+      .click(),
+  ]);
+  expect(readResponse.status()).toBe(200);
+  await expect(notifications.getByRole("article").first()).not.toContainText(
+    "Unread ·"
+  );
   await page.keyboard.press("Escape");
+  await expect(notifications).toBeHidden();
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Notifications", exact: true })
+    .click();
+  await expect(notifications.getByRole("article").first()).not.toContainText(
+    "Unread ·"
+  );
+  await page.keyboard.press("Escape");
+  await expect(notifications).toBeHidden();
   await page.screenshot({
     path: "verification/remediation/review-desktop.png",
     fullPage: true,
@@ -126,6 +149,11 @@ test("real signed intake, persisted review actions, reload, notifications and ex
     "SYSTEM-SHP-1 was not found"
   );
   await expect(page.getByRole("log")).toContainText("mode: Parcel");
+  await expect(
+    page
+      .getByRole("log")
+      .getByRole("link", { name: "Search shipments", exact: true })
+  ).toHaveCount(1);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({
     path: "verification/remediation/assistant-mobile.png",
@@ -228,15 +256,91 @@ test("exact backend mail link works during demo identity, is scrubbed, survives 
   ).toBeVisible();
 });
 
-test('actual browser loads beyond 500, finds the old delayed record and exports the same authorized filter',async({page})=>{
- const scale=JSON.parse(readFileSync('/tmp/imsop-scale-fixture.json','utf8')),reads:string[]=[];
- page.on('request',request=>{if(request.url().includes('/api/operations/shipments?'))reads.push(new URL(request.url()).search);});
- await page.goto('/#/login');await page.getByLabel('Email',{exact:true}).fill(scale.email);await page.getByLabel('Password',{exact:true}).fill('Scale-test-password-123');await page.getByRole('button',{name:'Sign In',exact:true}).click();await expect(page.getByRole('heading',{name:'Operational overview'})).toBeVisible();
- await page.goto('/#/supply-chain/shipments');await expect(page.getByText('620 matching · 1 need attention',{exact:true})).toBeVisible();expect(reads.some(q=>q.includes('cursor='))).toBe(true);
- await Promise.all([page.waitForResponse(response=>response.url().includes('/api/operations/shipments?')&&response.url().includes('q=LARGE-0001')&&response.status()===200),page.getByRole('searchbox',{name:'Search shipments'}).fill('LARGE-0001')]);
- await expect(page.getByText('1 matching · 1 need attention',{exact:true})).toBeVisible();await expect(page.getByRole('link',{name:'LARGE-0001',exact:true}).filter({visible:true})).toBeVisible();
- const [download]=await Promise.all([page.waitForEvent('download'),page.getByRole('button',{name:'CSV · filtered',exact:true}).click()]);const fs=await import('node:fs/promises');const csv=await fs.readFile((await download.path())!,'utf8');expect(csv).toContain('LARGE-0001');expect(csv).not.toContain('LARGE-0620');expect(csv).toContain('LIVE');expect(csv).toContain('Node operational database');expect(csv).toContain('Generated');
- await page.screenshot({path:'verification/remediation/real-scale-filter.png',fullPage:true});
- const measurement=await page.evaluate(()=>{const nav=performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;return {domContentLoadedMs:nav.domContentLoadedEventEnd,loadMs:nav.loadEventEnd,sourceReads:performance.getEntriesByType('resource').filter(entry=>entry.name.includes('/api/operations/shipments?')).map(entry=>({durationMs:entry.duration})),overflow:document.documentElement.scrollWidth>innerWidth};});
- await fs.writeFile('verification/remediation/real-browser-performance.json',JSON.stringify({environment:'local isolated real gateway/PostgreSQL',selectionRecords:620,filterRecords:1,...measurement},null,2));expect(measurement.overflow).toBe(false);
+test("actual browser loads beyond 500, finds the old delayed record and exports the same authorized filter", async ({
+  page,
+}) => {
+  const scale = JSON.parse(
+      readFileSync("/tmp/imsop-scale-fixture.json", "utf8")
+    ),
+    reads: string[] = [];
+  page.on("request", request => {
+    if (request.url().includes("/api/operations/shipments?"))
+      reads.push(new URL(request.url()).search);
+  });
+  await page.goto("/#/login");
+  await page.getByLabel("Email", { exact: true }).fill(scale.email);
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("Scale-test-password-123");
+  await page.getByRole("button", { name: "Sign In", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Operational overview" })
+  ).toBeVisible();
+  await page.goto("/#/supply-chain/shipments");
+  await expect(
+    page.getByText("620 matching · 1 need attention", { exact: true })
+  ).toBeVisible();
+  expect(reads.some(q => q.includes("cursor="))).toBe(true);
+  await Promise.all([
+    page.waitForResponse(
+      response =>
+        response.url().includes("/api/operations/shipments?") &&
+        response.url().includes("q=LARGE-0001") &&
+        response.status() === 200
+    ),
+    page
+      .getByRole("searchbox", { name: "Search shipments" })
+      .fill("LARGE-0001"),
+  ]);
+  await expect(
+    page.getByText("1 matching · 1 need attention", { exact: true })
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("link", { name: "LARGE-0001", exact: true })
+      .filter({ visible: true })
+  ).toBeVisible();
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "CSV · filtered", exact: true }).click(),
+  ]);
+  const fs = await import("node:fs/promises");
+  const csv = await fs.readFile((await download.path())!, "utf8");
+  expect(csv).toContain("LARGE-0001");
+  expect(csv).not.toContain("LARGE-0620");
+  expect(csv).toContain("LIVE");
+  expect(csv).toContain("Node operational database");
+  expect(csv).toContain("Generated");
+  await page.screenshot({
+    path: "verification/remediation/real-scale-filter.png",
+    fullPage: true,
+  });
+  const measurement = await page.evaluate(() => {
+    const nav = performance.getEntriesByType(
+      "navigation"
+    )[0] as PerformanceNavigationTiming;
+    return {
+      domContentLoadedMs: nav.domContentLoadedEventEnd,
+      loadMs: nav.loadEventEnd,
+      sourceReads: performance
+        .getEntriesByType("resource")
+        .filter(entry => entry.name.includes("/api/operations/shipments?"))
+        .map(entry => ({ durationMs: entry.duration })),
+      overflow: document.documentElement.scrollWidth > innerWidth,
+    };
+  });
+  await fs.writeFile(
+    "verification/remediation/real-browser-performance.json",
+    JSON.stringify(
+      {
+        environment: "local isolated real gateway/PostgreSQL",
+        selectionRecords: 620,
+        filterRecords: 1,
+        ...measurement,
+      },
+      null,
+      2
+    )
+  );
+  expect(measurement.overflow).toBe(false);
 });
