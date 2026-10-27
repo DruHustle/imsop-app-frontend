@@ -131,7 +131,7 @@ test("live details preserve stable IDs, provenance, stale observation and missin
   await expect(
     page.getByRole("heading", { name: "ORD-LIVE-101" })
   ).toBeVisible();
-  await expect(page.getByText("0.00 · Currency not supplied")).toBeVisible();
+  await expect(page.getByText("0.00 · Currency unknown")).toBeVisible();
   await expect(page.getByText("node.orders · Numeric ID 101")).toBeVisible();
 });
 test("live assistant uses permitted records and infrastructure remains honestly scoped", async ({
