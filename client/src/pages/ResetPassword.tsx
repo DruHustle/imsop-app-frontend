@@ -56,7 +56,6 @@ export default function ResetPassword() {
       if (result.success) {
         forgetResetToken();
         setSuccess(true);
-        toast.success("Password reset successful!");
       } else {
         setError(
           result.error || "Could not reset your password. You can retry."

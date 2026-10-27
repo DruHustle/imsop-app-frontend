@@ -173,7 +173,7 @@ export function SourceState<T>({
     return (
       <EmptyState
         title="Access denied"
-        description="Your role cannot read this source. The API enforces this permission."
+        description={source.error ?? "Your role cannot read this source. Ask your administrator for access."}
       />
     );
   if (source.status === "unavailable")

@@ -42,17 +42,19 @@ export async function readSource(path: string, signal: AbortSignal) {
   });
   if (res.status === 401)
     window.dispatchEvent(new Event("imsop:session-expired"));
-  if (!res.ok)
+  if (!res.ok) {
+    const failure=await res.json().catch(()=>({}));
     throw new ReadError(
       res.status,
       res.status === 401
         ? "Your session expired. Sign in again to continue."
         : res.status === 403
-          ? "You do not have permission to read this source."
+          ? failure.code==='WORKSPACE_REQUIRED' ? 'Ask your workspace administrator to provision access.' : "You do not have permission to read this source."
           : res.status === 404
             ? "Record not found."
             : "The source is unavailable. Retry the read."
     );
+  }
   return res.json();
 }
 interface DataState {

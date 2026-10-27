@@ -30,7 +30,6 @@ export default function Login() {
     try {
       const result = await login(email, password);
       if (result.success) {
-        toast.success("Login successful!");
         const destination = safeSessionStorage.getItem("imsop:return-to");
         safeSessionStorage.removeItem("imsop:return-to");
         safeSessionStorage.removeItem("imsop:session-expired");
