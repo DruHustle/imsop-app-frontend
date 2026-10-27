@@ -1094,3 +1094,11 @@
 }
 .source-note { flex-wrap: wrap; }
 .source-note > span { flex: 1; min-width: 160px; overflow-wrap: anywhere; }
+@media (min-width: 768px) and (max-width: 900px) {
+  .desktop-records { display: none; }
+  .mobile-records { display: grid; gap: 12px; }
+  .shipment-card { border: 1px solid var(--border); border-radius: 7px; padding: 14px; }
+  .shipment-card .card-top, .shipment-card .card-bottom { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+  .shipment-card .route-cell { margin: 12px 0; overflow-wrap: anywhere; }
+  .shipment-card .card-bottom { align-items: end; font-size: 11px; }
+}

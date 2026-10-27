@@ -32,7 +32,7 @@ const ShipmentMap = lazy(() =>
   import("@/components/Map").then(m => ({ default: m.MapView }))
 );
 export default function Operations() {
-  const { shipments, refresh } = useData();
+  const { shipments } = useData();
   const [path, navigate] = useLocation();
   const params = useHashQuery();
   const [view, setView] = useState<"list" | "map">("list");
@@ -75,9 +75,6 @@ export default function Operations() {
         description="Find a shipment, review its latest observation, and decide what needs attention."
         actions={
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={refresh}>
-              Refresh
-            </Button>
             <Dialog>
               <DialogTrigger asChild>
                 <Button>

@@ -177,7 +177,7 @@ export function SourceNote({
           ? `Demo dataset · As of ${formatTime(DEMO_AS_OF)}`
           : "Live · Workspace records"}
         {count !== undefined &&
-          ` · ${count} records in scope${total !== undefined ? ` of ${total}` : ""}`}
+          ` · ${count} ${count===1?"record":"records"} in scope${total !== undefined ? ` of ${total}` : ""}`}
         {mode === "live" &&
           ` · Complete matching selection · Last read: ${formatTime(lastShipmentReadAt)}`}
       </span>
