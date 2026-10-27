@@ -149,7 +149,14 @@ export function ReviewEvidence({
         </Button>
       </div>
       <div className="evidence-lanes">
-        {["Exception", "Delayed"].map(status => (
+        {(scenario === "oldest"
+          ? ["Exception", "Delayed"].sort(
+              (a, b) =>
+                candidates.findIndex(s => s.status === a) -
+                candidates.findIndex(s => s.status === b)
+            )
+          : ["Exception", "Delayed"]
+        ).map(status => (
           <div key={status}>
             <h3>
               <i style={{ background: statusColor(status) }} />
@@ -169,9 +176,11 @@ export function ReviewEvidence({
                     {s.origin} → {s.destination}
                   </span>
                   <small>
-                    {isStale(s, now)
-                      ? "Observation stale"
-                      : "Recent observation"}{" "}
+                    {!s.observedAt
+                      ? "Observation unavailable"
+                      : isStale(s, now)
+                        ? "Observation stale"
+                        : "Recent observation"}{" "}
                     · {formatTime(s.observedAt)}
                   </small>
                 </button>

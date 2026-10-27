@@ -1378,3 +1378,4 @@ progress::-moz-progress-bar { background:var(--primary); border-radius:3px; }
 .overview-lower .donut-plot { width:145px; height:165px; flex-shrink:0; }
 .overview-lower .donut-legend { min-width:95px; }
 @media(min-width:901px) { .overview-lower .overview-status { flex-wrap:nowrap; } }
+.health-light.degraded { background:var(--bad); }

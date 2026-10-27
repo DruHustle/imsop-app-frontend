@@ -56,6 +56,7 @@ export default function Dashboard() {
     scope.to,
     utcDay(mode === "demo" ? DEMO_AS_OF : Date.now())
   );
+  const maxCreated = Math.max(1, ...activity.points.map(p => p.created));
   const update = (changes: Record<string, string>) => {
     const q = new URLSearchParams(params);
     for (const [key, value] of Object.entries(changes))

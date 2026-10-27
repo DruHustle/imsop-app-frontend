@@ -61,6 +61,41 @@ test("graphical overview keeps scopes, chart totals, locations and selected reco
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.getByRole("button", { name: "3D globe", exact: true }).click();
   await expect(page.locator(".shipment-globe, .geographic-map")).toBeVisible();
+  const canvas = page.locator(".shipment-globe");
+  if (await canvas.isVisible()) {
+    for (const theme of ["light", "dark"]) {
+      await page.getByLabel("Theme", { exact: true }).selectOption(theme);
+      await canvas.focus();
+      await page.keyboard.press("ArrowRight");
+      await page
+        .getByRole("button", { name: "Zoom globe in", exact: true })
+        .click();
+      expect(
+        await canvas.evaluate((element: HTMLCanvasElement) =>
+          element.getContext("webgl")!.getError()
+        )
+      ).toBe(0);
+      await page.locator(".overview-map-panel").screenshot({
+        path: `verification/remediation/spatial-${page.viewportSize()!.width}-${theme}.png`,
+        animations: "disabled",
+      });
+    }
+    console.log(
+      "Actual WebGL globe rendered, orbited and zoomed in both themes"
+    );
+    await canvas.evaluate((element: HTMLCanvasElement) =>
+      element
+        .getContext("webgl")!
+        .getExtension("WEBGL_lose_context")
+        ?.loseContext()
+    );
+    await expect(
+      page.getByText("3D rendering unavailable on this device.", {
+        exact: false,
+      })
+    ).toBeVisible();
+    await expect(page.locator(".geographic-map")).toBeVisible();
+  }
 });
 test("unique workspace visuals support selecting evidence and filtering records", async ({
   page,
@@ -83,6 +118,9 @@ test("unique workspace visuals support selecting evidence and filtering records"
   await page
     .getByRole("button", { name: "Oldest evidence first", exact: true })
     .click();
+  await expect(page.locator(".evidence-lanes > div").first()).toContainText(
+    "Delayed"
+  );
   await page.locator(".evidence-lanes").getByRole("button").first().click();
   await expect(page.locator(".map-record-context")).toContainText(
     "Proposed next step"

@@ -132,12 +132,12 @@ export function shipmentActivity(
   };
 }
 export function statusGroups(items: Shipment[]) {
-  return Array.from(new Set(items.map(s => s.status)))
-    .map(status => ({
-      status,
-      count: items.filter(s => s.status === status).length,
-    }))
-    .sort((a, b) => b.count - a.count || a.status.localeCompare(b.status));
+  const counts = new Map<string, number>();
+  for (const item of items)
+    counts.set(item.status, (counts.get(item.status) ?? 0) + 1);
+  return Array.from(counts, ([status, count]) => ({ status, count })).sort(
+    (a, b) => b.count - a.count || a.status.localeCompare(b.status)
+  );
 }
 export function statusColor(status: string) {
   return status === "Delivered"

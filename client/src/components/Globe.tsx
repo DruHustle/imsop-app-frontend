@@ -226,17 +226,18 @@ export default function Globe({
       gl.deleteProgram(program);
     };
   }, []);
+  useEffect(() => draw.current(), [assets]);
+  const focused = assets.find(a => a.id === selectedId);
   useEffect(() => {
-    const selected = assets.find(a => a.id === selectedId);
-    if (selected) {
-      view.current.yaw = (-selected.position.lng * Math.PI) / 180;
+    if (focused) {
+      view.current.yaw = (-focused.position.lng * Math.PI) / 180;
       view.current.pitch = Math.max(
         -1.35,
-        Math.min(1.35, (selected.position.lat * Math.PI) / 180)
+        Math.min(1.35, (focused.position.lat * Math.PI) / 180)
       );
     }
     draw.current();
-  }, [assets, selectedId]);
+  }, [selectedId, focused?.position.lat, focused?.position.lng]);
   const drag = useRef<{ x: number; y: number; distance: number } | null>(null);
   const rotate = (x: number, y: number) => {
     view.current.yaw += x;
