@@ -1,3 +1,4 @@
+import { useHashQuery } from "@/lib/hash-location";
 import { safeSessionStorage } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,8 @@ import { useLocation } from "wouter";
 export default function Login() {
   const { login } = useAuth();
   const [, navigate] = useLocation();
+  const liveRequested = useHashQuery().get("mode") === "live";
+  const [signInMode, setSignInMode] = useState<"live" | "demo">("live");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -28,7 +31,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const result = await login(email, password);
+      const result = await login(email, password, signInMode);
       if (result.success) {
         const destination = safeSessionStorage.getItem("imsop:return-to");
         safeSessionStorage.removeItem("imsop:return-to");
@@ -58,6 +61,7 @@ export default function Login() {
     };
     const cred = credentials[role];
     if (cred) {
+      setSignInMode("demo");
       setEmail(cred.email);
       setPassword(cred.password);
     }
@@ -98,6 +102,29 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <p
+            role="status"
+            className="text-sm text-center text-muted-foreground"
+          >
+            {liveRequested
+              ? "Sign in with your workspace account to view live data."
+              : signInMode === "demo"
+                ? "Demo sign-in · Example data only"
+                : "Live sign-in · Use your workspace account"}
+          </p>
+          {signInMode === "demo" && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setSignInMode("live");
+                setEmail("");
+                setPassword("");
+              }}
+            >
+              Use live sign-in
+            </Button>
+          )}
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -108,7 +135,10 @@ export default function Login() {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={e => {
+                    setEmail(e.target.value);
+                    setSignInMode("live");
+                  }}
                   className="pl-10 bg-background/50 border-border"
                   required
                 />
@@ -173,49 +203,53 @@ export default function Login() {
             </button>
           </div>
 
-          <div className="space-y-3">
-            <p className="text-xs text-center text-muted-foreground">
-              Demo Accounts (click to fill):
-            </p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fillDemoCredentials("admin")}
-                className="text-xs"
-              >
-                Admin
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fillDemoCredentials("engineer")}
-                className="text-xs"
-              >
-                Engineer
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fillDemoCredentials("analyst")}
-                className="text-xs"
-              >
-                Analyst
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fillDemoCredentials("demo")}
-                className="text-xs"
-              >
-                Demo
-              </Button>
+          {!liveRequested && (
+            <div className="space-y-3">
+              <p className="text-xs text-center text-muted-foreground">
+                Demo Accounts (click to fill):
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillDemoCredentials("admin")}
+                  className="text-xs"
+                >
+                  Admin
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillDemoCredentials("engineer")}
+                  className="text-xs"
+                >
+                  Engineer
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillDemoCredentials("analyst")}
+                  className="text-xs"
+                >
+                  Analyst
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillDemoCredentials("demo")}
+                  className="text-xs"
+                >
+                  Demo
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="mt-6 text-center text-xs text-muted-foreground">
             <p>Protected by IMSOP Identity Service</p>
-            <p>Demo identities use isolated, labelled example data.</p>
+            {!liveRequested && (
+              <p>Demo identities use isolated, labelled example data.</p>
+            )}
           </div>
         </CardContent>
       </Card>

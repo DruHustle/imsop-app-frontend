@@ -214,7 +214,10 @@ export function SourceNote({
 }) {
   const { mode, lastShipmentReadAt, refresh } = useData();
   return (
-    <div className={`source-note ${mode === "demo" ? "demo-note" : ""}`}>
+    <div
+      data-mode={mode}
+      className={`source-note ${mode === "demo" ? "demo-note" : ""}`}
+    >
       <Database size={14} aria-hidden="true" />
       <span>
         {mode === "demo"

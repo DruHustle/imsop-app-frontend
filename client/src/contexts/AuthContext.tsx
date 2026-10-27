@@ -32,7 +32,11 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (e: string, p: string) => Promise<AuthResponse>;
+  login: (
+    e: string,
+    p: string,
+    mode?: "live" | "demo"
+  ) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   register: (e: string, p: string, n: string) => Promise<AuthResponse>;
   requestPasswordReset: (e: string) => Promise<AuthResponse>;
@@ -104,8 +108,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user,
       isAuthenticated: !!user,
       isLoading,
-      login: (e: string, p: string) =>
-        handleAuthAction(() => getSvc(e).login(e, p)),
+      login: (e: string, p: string, mode?: "live" | "demo") =>
+        handleAuthAction(async () => {
+          const result = await AuthServiceFactory.getService(e, mode).login(
+            e,
+            p
+          );
+          if (mode === "live" && result.success && result.user)
+            safeLocalStorage.setItem(
+              `imsop:mode:${result.user.id}:${result.user.email}:account`,
+              "live"
+            );
+          return result;
+        }),
       logout: async () => {
         const service = getSvc();
         clearSensitiveState(user, true);
