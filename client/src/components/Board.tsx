@@ -88,7 +88,7 @@ export function StatusDistribution({
               style={{ width: `${(s.count / items.length) * 100}%` }}
               title={`${s.status}: ${s.count}`}
             >
-              {s.count}
+              <span className="sr-only">{s.count}</span>
             </div>
           ))}
         </div>

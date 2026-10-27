@@ -1267,3 +1267,14 @@
 .data-table td { padding: 12px; }
 .records-layout.has-preview .data-table td { padding: 11px 10px; }
 .records-layout .freshness { font-size: 9px; line-height: 1.4; margin-top: 5px; }
+/* Retain the established IMSOP palette in both themes; boards define layout only. */
+.sidebar { background: var(--sidebar); }
+.nav-link[aria-current] { background: #1b3d50; color: #7ae0ee; border-left-color: #66cddd; }
+.sidebar-profile .avatar-initial { background: var(--muted); color: var(--foreground); }
+.metric-icon.attention { color: var(--warn); }
+:root, .dark { --chart-bar: color-mix(in srgb,var(--primary) 35%,var(--card)); }
+[data-status="Delivered"] { background: var(--color-chart-3); }
+[data-status="In transit"] { background: var(--primary); }
+[data-status="Delayed"] { background: var(--color-chart-4); }
+[data-status="Exception"] { background: var(--bad); }
+[data-status="Pending"], [data-status="Other"], [data-status="Cancelled"] { background: var(--color-chart-5); }

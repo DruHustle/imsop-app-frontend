@@ -13,3 +13,14 @@ test('demo reviews persist explicit local actions and comparisons show each requ
  await navigate(page,'Assistant');await page.getByLabel('Your question').fill('Compare SHP-8829 and SHP-9921');await page.getByRole('button',{name:'Send',exact:true}).click();const table=page.getByRole('log').getByRole('table');await expect(table.locator('tbody tr')).toHaveCount(2);await expect(table.locator('tbody tr').nth(0)).toContainText('SHP-8829');await expect(table.locator('tbody tr').nth(0)).toContainText('In transit');await expect(table.locator('tbody tr').nth(1)).toContainText('SHP-9921');await expect(table.locator('tbody tr').nth(1)).toContainText('Delayed');
  await navigate(page,'Service health');await expect(page.getByText('Checks observed',{exact:true})).toBeVisible();await navigate(page,'Integrations');await page.getByText('View requirements',{exact:true}).first().click();await expect(page.getByText(/Live intake requires a signed event contract/)).toBeVisible();
 });
+
+test('board layouts preserve the established theme tokens, dark backgrounds and system behavior',async({page})=>{
+ await loginDemo(page);
+ for(const [theme,primary,background,sidebar] of [['light','#087d92','rgb(243, 246, 250)','rgb(17, 35, 56)'],['dark','#5ed3e4','rgb(13, 23, 37)','rgb(16, 28, 44)']]){
+  await page.getByLabel('Theme',{exact:true}).selectOption(theme);
+  expect(await page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--primary').trim())).toBe(primary);
+  expect(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(background);
+  expect(await page.locator('.sidebar').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(sidebar);
+ }
+ await page.getByLabel('Theme',{exact:true}).selectOption('system');await page.emulateMedia({colorScheme:'light'});await expect(page.locator('html')).not.toHaveClass(/dark/);await page.emulateMedia({colorScheme:'dark'});await expect(page.locator('html')).toHaveClass(/dark/);
+});

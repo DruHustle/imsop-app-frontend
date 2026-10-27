@@ -16,3 +16,5 @@ Eight shared-component workspaces:
 Reusable components include PageHeader, Panel, Metric, StatusBadge, SourceNote/SourceState, Notice, RecordPreview, StatusDistribution, EvidenceTimeline, DeliveryTrend and IntegrationCard. All business figures derive from the selected authorized dataset or clearly labelled demo records. Schema/provenance explanations are contextual Source details.
 
 Current screenshots and the visual-inspection record are in `verification/remediation/RESULTS.md`; historical screenshot files remain untouched. Desktop, narrow desktop and mobile are checked in both themes, including long-label fixtures kept in tests.
+
+The existing colour tokens remain authoritative: light primary `#087d92`, dark primary `#5ed3e4`, light background `#f3f6fa`, dark background `#0d1725`, and theme-specific sidebar `#112338` / `#101c2c`. Chart/notice colours derive from existing theme/semantic tokens. Light, Dark and System selection/persistence are unchanged; system changes are observed. The boards do not replace IMSOP’s palette.
