@@ -33,8 +33,9 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { routes, permitted, routeFor } from "@/lib/routes";
 import NotificationCenter from "./NotificationCenter";
 import { SectionNav } from "./Workspace";
+import { safeSessionStorage } from "@/lib/storage";
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [path] = useLocation();
+  const [path, navigate] = useLocation();
   const { user, logout } = useAuth();
   const { mode, setMode, demoIdentity } = useData();
   const { theme, setTheme } = useTheme();
@@ -219,11 +220,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <select
                 aria-label="Data mode"
                 value={mode}
-                onChange={e => setMode(e.target.value as "live" | "demo")}
+                onChange={async e => {
+                  const next = e.target.value as "live" | "demo";
+                  if (next === "live" && demoIdentity) {
+                    safeSessionStorage.setItem(
+                      "imsop:return-to",
+                      window.location.hash
+                    );
+                    await logout();
+                    navigate("/login?mode=live");
+                  } else setMode(next);
+                }}
               >
-                <option value="live" disabled={demoIdentity}>
-                  Live
-                </option>
+                <option value="live">Live</option>
                 <option value="demo">Demo</option>
               </select>
             </label>

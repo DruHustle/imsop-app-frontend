@@ -134,6 +134,7 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
     if (demoIdentity && next === "live") return;
     setShipments(loading());
     setOrders(loading());
+    setLastShipmentReadAt(null);
     setSelectedMode(next);
     safeLocalStorage.setItem(key, next);
   };

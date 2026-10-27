@@ -15,6 +15,12 @@ describe('Auth Service', () => {
       expect(service.constructor.name).toBe('MockAuthService');
     });
 
+    it('explicit live sign-in uses the API even for a demo-associated email domain', () => {
+      safeLocalStorage.setItem('imsop_token', 'mock_token');
+      expect(AuthServiceFactory.getService('admin@imsop.io', 'live').constructor.name).toBe('ApiAuthService');
+      expect(AuthServiceFactory.getService('user@real.com', 'demo').constructor.name).toBe('MockAuthService');
+    });
+
     it('should return ApiAuthService for real emails', () => {
       const service = AuthServiceFactory.getService('user@real.com');
       expect(service.constructor.name).toBe('ApiAuthService');
