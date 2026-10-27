@@ -1,6 +1,7 @@
+import { CarrierComparison } from "@/components/WorkspaceVisuals";
 import { useLocation } from "wouter";
 import { useHashQuery } from "@/lib/hash-location";
-import { StatusDistribution, DeliveryTrend } from "@/components/Board";
+import { DeliveryTrend } from "@/components/Board";
 import { useData } from "@/contexts/DataContext";
 import {
   PageHeader,
@@ -145,10 +146,10 @@ export default function AnalyticsPage() {
       ) : (
         <div className="two-column">
           <Panel
-            title="Shipment status distribution"
+            title="Carrier comparison"
             description={`${items.length} filtered records; counts include every record in scope.`}
           >
-            <StatusDistribution items={items} />
+            <CarrierComparison items={items} onSelect={setCarrier} />
           </Panel>
           <Panel
             title="Delivery performance"

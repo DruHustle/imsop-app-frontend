@@ -1,3 +1,5 @@
+import { OrderStages } from "@/components/WorkspaceVisuals";
+import { utcDay } from "@/lib/overview";
 import { Purchasing } from "@/components/Purchasing";
 import { RecordPreview } from "@/components/Board";
 import { Link, useLocation } from "wouter";
@@ -29,7 +31,13 @@ export default function Orders() {
   };
   const detail = (id: string) =>
     `/supply-chain/orders/${id}?return=${encodeURIComponent(path + (params.size ? "?" + params : ""))}`;
-  const items = orders.items.filter(
+  const cohort = orders.items.filter(
+    o =>
+      (!params.get("from") || utcDay(o.createdAt) >= params.get("from")!) &&
+      (!params.get("to") ||
+        (!!utcDay(o.createdAt) && utcDay(o.createdAt) <= params.get("to")!))
+  );
+  const items = cohort.filter(
     o =>
       (!q ||
         [o.orderNumber, o.customerId ?? ""]
@@ -52,6 +60,13 @@ export default function Orders() {
         count={orders.status === "ready" ? orders.items.length : undefined}
         total={orders.total}
       />
+      {orders.status === "ready" && (
+        <OrderStages
+          items={cohort}
+          selected={status}
+          onSelect={value => set("status", value)}
+        />
+      )}
       <Panel>
         <div className="filter-toolbar">
           <label className="field">
@@ -68,6 +83,7 @@ export default function Orders() {
           <label className="field">
             Order status
             <select
+              aria-label="Order status"
               value={status}
               onChange={e => {
                 set("status", e.target.value);

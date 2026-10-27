@@ -66,7 +66,7 @@ test("filters, summaries, map markers, pagination and exports share their visibl
     page.getByText("Latitude 31.23 · Longitude 121.47")
   ).toBeVisible();
   await expect(
-    page.getByRole("img", { name: /Schematic longitude/ })
+    page.getByRole("img", { name: /Geographic longitude/ })
   ).toBeVisible();
   const promise = page.waitForEvent("download");
   await page.getByRole("button", { name: "CSV · filtered" }).click();
@@ -239,7 +239,7 @@ test("analytics date scope changes calculations and export records", async ({
   await navigate(page, "Analytics");
   await page.getByLabel("Created from").fill("2026-10-10");
   await page.getByLabel("Created through").fill("2026-10-10");
-  await expect(page.getByRole("img", { name: "In transit: 1" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Filter carrier Maersk, 1 shipments", exact: true })).toBeVisible();
   const promise = page.waitForEvent("download");
   await page.getByRole("button", { name: "CSV · filtered" }).click();
   const file = await promise;

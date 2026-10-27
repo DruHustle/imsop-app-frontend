@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { ReadError, readSource, useData } from "@/contexts/DataContext";
 import { demoShipments, demoOrders, demoEvents } from "@/lib/demo-data";
@@ -20,6 +20,9 @@ import {
 } from "@/components/Workspace";
 import { Button } from "@/components/ui/button";
 import { useHashQuery } from "@/lib/hash-location";
+const ShipmentChronology = lazy(
+  () => import("@/components/ShipmentChronology")
+);
 interface Props {
   kind: "shipments" | "orders";
   id: string;
@@ -49,7 +52,9 @@ function Detail({ kind, id, tracking = false }: Props) {
   const back =
     returnTo &&
     (returnTo === `/supply-chain/${kind}` ||
-      returnTo.startsWith(`/supply-chain/${kind}?`))
+      returnTo.startsWith(`/supply-chain/${kind}?`) ||
+      returnTo === "/" ||
+      returnTo.startsWith("/?"))
       ? returnTo
       : `/supply-chain/${kind}`;
   useEffect(() => {
@@ -167,6 +172,13 @@ function Detail({ kind, id, tracking = false }: Props) {
                 title="Tracking events"
                 description="Provider observation and receipt times are preserved. No event payload is interpreted as a current provider connection."
               >
+                {events.length > 0 && (
+                  <Suspense
+                    fallback={<p role="status">Loading event chronology…</p>}
+                  >
+                    <ShipmentChronology events={events} href={base + suffix} />
+                  </Suspense>
+                )}
                 {events.length ? (
                   events.map(e => (
                     <article className="event-row" key={e.id}>

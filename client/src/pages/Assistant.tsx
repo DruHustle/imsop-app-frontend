@@ -1,3 +1,4 @@
+import { AnswerVisual } from "@/components/WorkspaceVisuals";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { readSource } from "@/contexts/DataContext";
@@ -213,6 +214,9 @@ function Session() {
                 <p className="eyebrow">
                   {mode === "demo" ? "Demo data assistant" : "Data assistant"}
                 </p>
+                {m.answer.records && m.answer.records.length > 0 && (
+                  <AnswerVisual records={m.answer.records} />
+                )}
                 {m.answer.records && m.answer.records.length > 1 ? (
                   <>
                     <p>Comparison from the records you can access.</p>

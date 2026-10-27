@@ -1,3 +1,4 @@
+import { overviewScope } from "@/lib/overview";
 import {
   createContext,
   useContext,
@@ -43,13 +44,15 @@ export async function readSource(path: string, signal: AbortSignal) {
   if (res.status === 401)
     window.dispatchEvent(new Event("imsop:session-expired"));
   if (!res.ok) {
-    const failure=await res.json().catch(()=>({}));
+    const failure = await res.json().catch(() => ({}));
     throw new ReadError(
       res.status,
       res.status === 401
         ? "Your session expired. Sign in again to continue."
         : res.status === 403
-          ? failure.code==='WORKSPACE_REQUIRED' ? 'Ask your workspace administrator to provision access.' : "You do not have permission to read this source."
+          ? failure.code === "WORKSPACE_REQUIRED"
+            ? "Ask your workspace administrator to provision access."
+            : "You do not have permission to read this source."
           : res.status === 404
             ? "Record not found."
             : "The source is unavailable. Retry the read."
@@ -91,10 +94,13 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
   );
   const [shipments, setShipments] = useState<Source<Shipment>>(loading);
   const [orders, setOrders] = useState<Source<OperationalOrder>>(loading);
+  const onOverview = () =>
+    ["#/", "#", ""].includes(window.location.hash.split("?")[0]);
   const selectedFilters = () => {
     const q = new URLSearchParams(window.location.hash.split("?")[1] || "");
     const result = new URLSearchParams();
     if (
+      onOverview() ||
       window.location.hash.startsWith("#/supply-chain/shipments?") ||
       window.location.hash.startsWith("#/insights/analytics?")
     )
@@ -102,7 +108,12 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
         const value = q.get(name);
         if (value) result.set(name, value);
       }
-    return result.toString();
+    if (onOverview()) {
+      const dates = overviewScope(q, mode);
+      if (dates.from) result.set("from", dates.from);
+      if (dates.to) result.set("to", dates.to);
+    }
+    return (onOverview() ? "overview:" : "") + result.toString();
   };
   const [selection, setSelection] = useState(selectedFilters);
   useEffect(() => {
@@ -116,7 +127,7 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
       clearTimeout(timer);
       window.removeEventListener("hashchange", change);
     };
-  }, []);
+  }, [mode]);
   const [version, setVersion] = useState(0);
   const refresh = useCallback(() => setVersion(v => v + 1), []);
   const setMode = (next: Mode) => {
@@ -164,6 +175,16 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
             const value = query.get(name);
             if (value) selection.set(name, value);
           }
+        if (onOverview()) {
+          const dates = overviewScope(query, mode);
+          if (dates.from) selection.set("from", dates.from);
+          if (dates.to) selection.set("to", dates.to);
+          if (kind === "shipments")
+            for (const name of ["q", "status", "carrier", "mode"]) {
+              const value = query.get(name);
+              if (value) selection.set(name, value);
+            }
+        }
         selection.set("limit", "500");
         selection.set("offset", "0");
         let data = await readSource(

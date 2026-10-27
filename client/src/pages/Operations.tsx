@@ -271,6 +271,8 @@ export default function Operations() {
                         {
                           id: s.id,
                           label: s.trackingNumber,
+                          status: s.status,
+                          observedAt: s.observedAt,
                           position: { lat: s.latitude, lng: s.longitude },
                           href: detail(s),
                         },

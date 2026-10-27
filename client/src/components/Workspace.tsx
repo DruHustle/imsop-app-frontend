@@ -86,8 +86,10 @@ export function Metric({
   description,
   href,
   kind,
+  visual,
 }: {
   kind?: keyof typeof metricIcons;
+  visual?: ReactNode;
   label: string;
   value: ReactNode;
   description: string;
@@ -102,6 +104,7 @@ export function Metric({
       <span className="metric-label">{label}</span>
       <strong>{value}</strong>
       <span className="muted text-xs">{description}</span>
+      {visual && <div className="metric-visual">{visual}</div>}
       {href && <ArrowUpRight className="metric-arrow" size={16} />}
     </>
   );
@@ -173,7 +176,10 @@ export function SourceState<T>({
     return (
       <EmptyState
         title="Access denied"
-        description={source.error ?? "Your role cannot read this source. Ask your administrator for access."}
+        description={
+          source.error ??
+          "Your role cannot read this source. Ask your administrator for access."
+        }
       />
     );
   if (source.status === "unavailable")
@@ -251,9 +257,26 @@ export function SectionNav() {
     </nav>
   );
 }
-export function Freshness({ shipment, compact=false }: { shipment: Shipment; compact?:boolean }) {
+export function Freshness({
+  shipment,
+  compact = false,
+}: {
+  shipment: Shipment;
+  compact?: boolean;
+}) {
   const { mode } = useData();
-  const observation=shipment.observedAt ? compact ? new Date(shipment.observedAt).toLocaleString(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false,timeZone:"UTC"})+" UTC" : formatTime(shipment.observedAt) : null;
+  const observation = shipment.observedAt
+    ? compact
+      ? new Date(shipment.observedAt).toLocaleString(undefined, {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "UTC",
+        }) + " UTC"
+      : formatTime(shipment.observedAt)
+    : null;
   return (
     <span className="freshness" title={formatTime(shipment.observedAt)}>
       {shipment.observedAt

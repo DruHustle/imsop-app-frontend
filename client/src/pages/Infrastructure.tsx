@@ -1,3 +1,4 @@
+import { HealthTopology } from "@/components/WorkspaceVisuals";
 import { IntegrationOverview } from "@/components/IntegrationOverview";
 import { Notice, EvidenceTimeline } from "@/components/Board";
 import { useEffect, useState } from "react";
@@ -195,6 +196,18 @@ function HealthWorkspace() {
               }
             />
           </div>
+          {!loading && scoped.length > 0 && (
+            <Panel
+              title="Service check topology"
+              description={
+                mode === "demo"
+                  ? "Demonstration states; no network probe"
+                  : "Observed API checks; select a node to inspect evidence"
+              }
+            >
+              <HealthTopology nodes={scoped} />
+            </Panel>
+          )}
           <div className="health-layout">
             <Panel title="Service checks">
               {loading ? (

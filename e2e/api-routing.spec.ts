@@ -153,17 +153,17 @@ test("live assistant uses permitted records and infrastructure remains honestly 
   ).toBeVisible();
   await navigate(page, "Service health");
   await expect(page.getByText("Degraded", { exact: true })).toBeVisible();
-  await expect(page.getByText("Unavailable", { exact: true })).toBeVisible();
+  await expect(page.getByRole("table").getByText("Unavailable", { exact: true })).toBeVisible();
   await page.getByLabel("Data mode", { exact: true }).selectOption("demo");
   await expect(
-    page.getByText("Demo API process", { exact: true })
+    page.getByRole("table").getByText("Demo API process", { exact: true })
   ).toBeVisible();
   await page.getByLabel("Data mode", { exact: true }).selectOption("live");
   await expect(
-    page.getByText("API process liveness", { exact: true })
+    page.getByRole("table").getByText("API process liveness", { exact: true })
   ).toBeVisible();
   await expect(
-    page.getByText("Demo API process", { exact: true })
+    page.getByRole("table").getByText("Demo API process", { exact: true })
   ).toBeHidden();
   await navigate(page, "Integrations");
   await expect(
@@ -282,7 +282,7 @@ test("configured map markers synchronize with filters, omit missing coordinates 
   await expect(page.locator("[data-fixture-marker]")).toHaveCount(1);
   await expect(page.getByText("LIVE-TRACK-78", { exact: true })).toBeHidden();
   await page
-    .getByRole("button", { name: "LIVE-TRACK-77", exact: true })
+    .getByRole("button", { name: "LIVE-TRACK-77 · In transit", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "LIVE-TRACK-77", exact: true })

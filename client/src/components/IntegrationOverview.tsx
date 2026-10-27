@@ -1,3 +1,4 @@
+import { ConnectionFlow } from "./WorkspaceVisuals";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { useData, readSource } from "@/contexts/DataContext";
@@ -57,6 +58,23 @@ export function IntegrationOverview() {
       : [];
   return (
     <>
+      <ConnectionFlow
+        sources={
+          mode === "demo"
+            ? [
+                {
+                  provider: "Demo carrier feed",
+                  enabled: true,
+                  signatureConfigured: true,
+                  lastReceivedAt: recent[0]?.receivedAt ?? undefined,
+                },
+              ]
+            : registry
+        }
+        mode={mode}
+        loading={loading}
+        error={error}
+      />
       {mode === "live" && (
         <div className="actions">
           <Button

@@ -411,6 +411,33 @@ export function Purchasing() {
               )
               .join("; ") || "No item evidence exists for this legacy order."}
           </p>
+          <div
+            className="receipt-progress"
+            aria-label="Recorded receiving progress"
+          >
+            {items.map(i => (
+              <div key={i.id}>
+                <span>
+                  {data.products.find(p => p.id === i.productId)?.name ??
+                    i.productId}
+                </span>
+                <strong>
+                  {i.receivedQuantity} / {i.quantity}
+                </strong>
+                <progress
+                  aria-label={`Received ${i.receivedQuantity} of ${i.quantity}`}
+                  value={i.receivedQuantity}
+                  max={Math.max(1, i.quantity)}
+                />
+              </div>
+            ))}
+          </div>
+          <p className="muted text-xs">
+            Supplier →{" "}
+            {data.suppliers.find(s => s.id === selected.supplierId)?.name ??
+              selected.supplierId}{" "}
+            → {selected.orderNumber} → {items.length} recorded line items
+          </p>
           {editable && items.some(i => i.receivedQuantity < i.quantity) && (
             <form
               className="space-y-3"
