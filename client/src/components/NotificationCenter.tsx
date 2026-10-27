@@ -1,3 +1,4 @@
+import { LiveNotifications } from "./OperationalReview";
 import { useState } from "react";
 import { Link } from "wouter";
 import { Bell } from "lucide-react";
@@ -63,6 +64,7 @@ function ScopedNotifications() {
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="notification-list">
+        {mode === "live" ? <LiveNotifications /> : <>
         <div className="p-4">
           <h2>Notifications</h2>
           <p className="muted text-xs mt-1">
@@ -148,14 +150,13 @@ function ScopedNotifications() {
         ) : (
           <div className="notification-item">
             <p className="muted">
-              {mode === "live"
-                ? "No production delivery or preference API is available. Review shipment exceptions in Supply chain."
-                : preferences.shipmentNotifications
+              {preferences.shipmentNotifications
                   ? "No unread or retained demonstration alerts."
                   : "Demo shipment notifications are disabled in Preferences."}
             </p>
           </div>
         )}
+        </>}
       </PopoverContent>
     </Popover>
   );

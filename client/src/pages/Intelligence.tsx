@@ -1,3 +1,4 @@
+import { OperationalReview } from "@/components/OperationalReview";
 import { Link } from "wouter";
 import { useData } from "@/contexts/DataContext";
 import {
@@ -20,6 +21,7 @@ export default function Intelligence() {
         description="Review evidence before making a decision. Predictive models and inventory adjustments are not configured."
       />
       <SourceNote />
+      {mode === "live" && <OperationalReview />}
       <Panel title="Prediction capability">
         <StatusBadge value="Not configured" />
         <p className="muted text-sm mt-4">

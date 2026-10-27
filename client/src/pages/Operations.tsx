@@ -32,7 +32,7 @@ const ShipmentMap = lazy(() =>
   import("@/components/Map").then(m => ({ default: m.MapView }))
 );
 export default function Operations() {
-  const { shipments } = useData();
+  const { shipments, refresh } = useData();
   const [path, navigate] = useLocation();
   const params = useHashQuery();
   const [view, setView] = useState<"list" | "map">("list");
@@ -74,11 +74,11 @@ export default function Operations() {
         title="Shipments"
         description="Find a shipment, review its latest observation, and decide what needs attention."
         actions={
-          <Dialog>
+          <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={refresh}>Refresh</Button><Dialog>
             <DialogTrigger asChild>
               <Button>
                 <Plus size={15} />
-                New shipment
+                Connect shipment source
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -90,7 +90,7 @@ export default function Operations() {
                 existing logistics event contract before onboarding shipments.
               </DialogDescription>
             </DialogContent>
-          </Dialog>
+          </Dialog></div>
         }
       />
       <SourceNote
@@ -394,7 +394,7 @@ export default function Operations() {
             { key: "observation", label: "Observed at" },
             { key: "source", label: "Observation provider" },
           ]}
-          scope={`Filtered ${visible.length} of newest ${shipments.items.length} authorized shipments; created ${filters.from || "any"} through ${filters.to || "any"}; ${JSON.stringify(filters)}`}
+          scope={`Filtered ${visible.length} of ${shipments.items.length} matching shipments; created ${filters.from || "any"} through ${filters.to || "any"}; ${JSON.stringify(filters)}`}
         />
       </div>
       <p className="muted text-xs">

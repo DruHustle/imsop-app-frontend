@@ -125,6 +125,7 @@ export async function liveSession(
       json: { allowed: ["admin", "analyst"].includes(role) },
     })
   );
+  for (const path of ['reviews','notifications','integrations']) await page.route(`**/api/operations/${path}*`,r=>r.fulfill({json:{items:[]}}));
   await page.route("**/health", route =>
     route.fulfill({ json: { status: "ok" } })
   );

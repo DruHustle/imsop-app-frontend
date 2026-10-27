@@ -76,19 +76,15 @@ const PreferencesContext = createContext<{
 function ScopedPreferences({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const key = `imsop:preferences:${user?.id ?? "guest"}:${user?.email ?? ""}`;
-  const [preferences, setPreferences] = useState<Preferences>(() => {
+  const readPreferences=()=>{
     try {
-      const s = JSON.parse(safeLocalStorage.getItem(key) || "{}");
-      return Object.fromEntries(
-        Object.entries(defaults).map(([k, v]) => [
-          k,
-          typeof s[k] === "boolean" ? s[k] : v,
-        ])
-      ) as unknown as Preferences;
-    } catch {
-      return defaults;
-    }
-  });
+      const stored=JSON.parse(safeLocalStorage.getItem(key)||'{}');
+      return Object.fromEntries(Object.entries(defaults).map(([name,value])=>[name,typeof stored[name]==='boolean'?stored[name]:value])) as unknown as Preferences;
+    } catch {return defaults;}
+  };
+  const [preferences,setPreferences]=useState<Preferences>(readPreferences);
+  // Update preference values on identity changes without remounting a recovery form in flight.
+  useEffect(()=>setPreferences(readPreferences()),[key]);
   useEffect(() => {
     const system = matchMedia("(prefers-reduced-motion: reduce)");
     const apply = () => {
@@ -124,7 +120,7 @@ function ScopedPreferences({ children }: { children: ReactNode }) {
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   return (
-    <ScopedPreferences key={`${user?.id ?? "guest"}:${user?.email ?? ""}`}>
+    <ScopedPreferences>
       {children}
     </ScopedPreferences>
   );

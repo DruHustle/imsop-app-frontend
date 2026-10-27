@@ -35,6 +35,7 @@ export default function AnalyticsPage() {
     status: s.status,
     carrier: s.carrier,
     estimatedArrival: s.estimatedArrival,
+    promisedArrival: s.promisedArrival,
     actualArrival: s.actualArrival,
     observedAt: s.observedAt,
     provider: s.provider,
@@ -167,9 +168,9 @@ export default function AnalyticsPage() {
           </Panel>
           <Panel title="How on-time performance is calculated">
             <p className="muted text-xs">
-              Denominator: delivered shipments with both estimated and actual
+              Denominator: delivered shipments with both the original promise and actual
               arrival timestamps. Numerator: eligible shipments whose actual
-              arrival is at or before the estimate. Rate = numerator ÷
+              arrival is at or before the earliest retained provider estimate. Rate = numerator ÷
               denominator. Missing dates are excluded; percentages are never
               averaged.
             </p>
@@ -190,12 +191,13 @@ export default function AnalyticsPage() {
             { key: "createdAt", label: "Created at (UTC)" },
             { key: "status", label: "Recorded status" },
             { key: "carrier", label: "Carrier" },
-            { key: "estimatedArrival", label: "Estimated arrival" },
+            { key: "estimatedArrival", label: "Current ETA" },
+            { key: "promisedArrival", label: "Original promise" },
             { key: "actualArrival", label: "Actual arrival" },
             { key: "observedAt", label: "Observed at" },
             { key: "provider", label: "Observation provider" },
           ]}
-          scope={`Filtered records: ${items.length}; created ${from || "any date"} through ${to || "any date"} UTC; carrier ${carrier || "all"}; on-time ${metrics.onTime}/${metrics.denominator}; within newest ${shipments.items.length} authorized shipments`}
+          scope={`Filtered records: ${items.length}; created ${from || "any date"} through ${to || "any date"} UTC; carrier ${carrier || "all"}; on-time ${metrics.onTime}/${metrics.denominator}; within ${shipments.items.length} matching shipments`}
         />
       </div>
     </>

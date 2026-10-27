@@ -1,3 +1,4 @@
+import { IntegrationRegistry } from "@/components/OperationalReview";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useData } from "@/contexts/DataContext";
@@ -137,7 +138,8 @@ function HealthWorkspace() {
       <SourceNote />
       {integrations ? (
         <>
-          <Panel title="Connector configuration">
+          {mode === "live" && <IntegrationRegistry />}
+          {mode === "demo" && <Panel title="Connector configuration">
             <EmptyState
               title={
                 mode === "demo"
@@ -151,6 +153,7 @@ function HealthWorkspace() {
               }
             />
           </Panel>
+          }
           <Panel title="Logistics event ingestion">
             <StatusBadge value="Unknown" />
             <p className="muted text-sm mt-4">

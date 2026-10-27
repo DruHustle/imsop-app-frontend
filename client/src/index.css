@@ -1087,3 +1087,10 @@
     overflow-wrap: anywhere;
   }
 }
+/* Keep header controls reachable at the narrow desktop breakpoint. */
+@media (min-width: 768px) and (max-width: 900px) {
+  .notification-button-text { display: none; }
+  .header-actions { gap: 6px; }
+}
+.source-note { flex-wrap: wrap; }
+.source-note > span { flex: 1; min-width: 160px; overflow-wrap: anywhere; }

@@ -168,19 +168,20 @@ export function SourceNote({
   count?: number;
   total?: number;
 }) {
-  const { mode } = useData();
+  const { mode, lastShipmentReadAt, refresh } = useData();
   return (
     <div className={`source-note ${mode === "demo" ? "demo-note" : ""}`}>
       <Database size={14} aria-hidden="true" />
       <span>
         {mode === "demo"
           ? `Demo dataset · As of ${formatTime(DEMO_AS_OF)}`
-          : "Live · Node operational database snapshot"}
+          : "Live · Workspace records"}
         {count !== undefined &&
           ` · ${count} records in scope${total !== undefined ? ` of ${total}` : ""}`}
         {mode === "live" &&
-          " · Scope: newest 500 records · Provider connectivity unknown"}
+          ` · Complete matching selection · Last read: ${formatTime(lastShipmentReadAt)}`}
       </span>
+      <Button variant="ghost" size="sm" onClick={refresh} aria-label="Refresh workspace records"><RefreshCw size={14} /> Refresh</Button>
     </div>
   );
 }
@@ -206,7 +207,7 @@ export function SectionNav() {
   );
 }
 export function Freshness({ shipment }: { shipment: Shipment }) {
-  const { mode } = useData();
+  const { mode, lastShipmentReadAt, refresh } = useData();
   return (
     <span className="freshness">
       {shipment.observedAt

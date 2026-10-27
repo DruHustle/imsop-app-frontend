@@ -19,7 +19,7 @@ test("live requests use the session origin, bounded queries and cookie credentia
   });
   await page.goto("/#/operations");
   await expect(
-    page.getByText("Live · Node operational database snapshot", {
+    page.getByText("Live · Workspace records", {
       exact: false,
     })
   ).toBeVisible();
@@ -170,13 +170,13 @@ test("live assistant uses permitted records and infrastructure remains honestly 
     .last()
     .click();
   await expect(
-    page.getByRole("heading", { name: "Connector status not configured" })
+    page.getByRole("heading", { name: "Logistics sources" })
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Notifications", exact: true })
     .click();
   await expect(
-    page.getByText("Live notification delivery is not configured.")
+    page.getByText("In-app review notifications · External delivery unavailable")
   ).toBeVisible();
 });
 test("client report export requires the backend report permission check", async ({

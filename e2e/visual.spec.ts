@@ -54,8 +54,8 @@ for (const state of ["populated", "empty", "loading", "error"] as const)
               });
       await expect(expected).toBeVisible();
       const widths =
-        info.project.name === "chromium" ? [1280, 820] : [390, 360];
-      const dir = path.resolve("verification/screenshots");
+        info.project.name === "chromium" ? [1280, 820, 768] : [390, 360];
+      const dir = path.resolve("verification/remediation/screenshots");
       await mkdir(dir, { recursive: true });
       for (const width of widths) {
         await page.setViewportSize({ width, height: 900 });
@@ -105,7 +105,7 @@ for (const theme of ["light", "dark"] as const)
       ["/settings", "Preferences", "preferences"],
       ["/profile", "Profile", "profile"],
     ];
-    const dir = path.resolve("verification/screenshots");
+    const dir = path.resolve("verification/remediation/screenshots");
     await mkdir(dir, { recursive: true });
     for (const [route, title, file] of pages) {
       await page.goto("/#" + route);

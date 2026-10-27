@@ -163,7 +163,7 @@ test("Overview query opens once and Assistant grounds known and unknown records"
   await page.getByLabel("Your question").fill("Look up SHP-NOT-FOUND");
   await page.getByLabel("Your question").press("Enter");
   await expect(page.getByRole("log")).toContainText(
-    "was not found in the selected authorized record scope"
+    "was not found in the permitted context"
   );
 });
 test("preferences change rendered colors, respect system changes, and persist effective behavior", async ({
@@ -253,7 +253,7 @@ test("creation prerequisite, blocked print and no-match states have useful behav
 }) => {
   await loginDemo(page);
   await navigate(page, "Shipments");
-  await page.getByRole("button", { name: "New shipment" }).click();
+  await page.getByRole("button", { name: "Connect shipment source" }).click();
   await expect(
     page.getByRole("heading", { name: "Shipment integration required" })
   ).toBeVisible();
@@ -330,8 +330,8 @@ test("Assistant cancellation prevents a late answer and restores the question", 
 }) => {
   await loginDemo(page);
   await navigate(page, "Assistant");
-  await page.clock.install();
-  await page.clock.pauseAt(new Date());
+  await page.clock.install({time:new Date("2026-10-27T09:00:00Z")});
+  await page.clock.pauseAt(new Date("2026-10-27T09:01:00Z"));
   await page.getByLabel("Your question").fill("Look up SHP-8829");
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();

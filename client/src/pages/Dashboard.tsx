@@ -51,7 +51,7 @@ export default function Dashboard() {
         <Metric
           label="Shipments in scope"
           value={ready ? shipments.items.length : "—"}
-          description="Newest 500 authorized records"
+          description="Matching workspace shipments"
           href="/supply-chain/shipments"
         />
         <Metric
@@ -76,7 +76,7 @@ export default function Dashboard() {
           description={
             orders.status === "forbidden"
               ? "Orders unavailable for your role"
-              : "Pending in newest 500 Node orders"
+              : "Pending workspace orders"
           }
           href={
             orders.status === "ready"

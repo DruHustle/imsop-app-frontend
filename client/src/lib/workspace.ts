@@ -12,6 +12,7 @@ export interface Shipment {
   createdAt: string | null;
   estimatedArrival: string | null;
   actualArrival: string | null;
+  promisedArrival?: string | null;
   latitude: number | null;
   longitude: number | null;
   observedAt: string | null;
@@ -23,6 +24,7 @@ export interface OperationalOrder {
   orderNumber: string;
   customerId: string | null;
   totalAmount: string | null;
+  currency?: string | null;
   status: string;
   createdAt: string | null;
   source: "node.orders";
@@ -73,7 +75,7 @@ const coordinate = (v: unknown, max: number) =>
     ? null
     : Number(v);
 export function normalizeShipment(raw: Record<string, unknown>): Shipment {
-  if (raw.id === undefined || raw.id === null || !raw.trackingNumber)
+  if (!/^[1-9]\d*$/.test(String(raw.id)) || typeof raw.trackingNumber !== "string" || !raw.trackingNumber.trim())
     throw new Error("Invalid shipment identity");
   const mode = String(raw.transportMode ?? "").toLowerCase();
   return {
@@ -91,11 +93,14 @@ export function normalizeShipment(raw: Record<string, unknown>): Shipment {
           air: "Air",
           road: "Road",
           rail: "Rail",
+          parcel: "Parcel",
+          other: "Other",
         } as Record<string, string>
       )[mode] ?? "Unknown",
     createdAt: date(raw.createdAt),
     estimatedArrival: date(raw.estimatedArrival),
     actualArrival: date(raw.actualArrival),
+    promisedArrival: date(raw.promisedArrival),
     latitude: coordinate(raw.latitude, 90),
     longitude: coordinate(raw.longitude, 180),
     observedAt: date(raw.observedAt),
@@ -113,6 +118,7 @@ export function normalizeOrder(raw: Record<string, unknown>): OperationalOrder {
       raw.customerId === null || raw.customerId === undefined
         ? null
         : String(raw.customerId),
+    currency: typeof raw.currency === "string" && /^[A-Z]{3}$/.test(raw.currency) ? raw.currency : null,
     totalAmount:
       raw.totalAmount === null || raw.totalAmount === undefined
         ? null
@@ -141,10 +147,10 @@ export const formatTime = (v: string | null) =>
     : "Not supplied";
 export function performance(items: Shipment[]) {
   const eligible = items.filter(
-    s => s.status === "Delivered" && s.estimatedArrival && s.actualArrival
+    s => s.status === "Delivered" && s.promisedArrival && s.actualArrival
   );
   const onTime = eligible.filter(
-    s => Date.parse(s.actualArrival!) <= Date.parse(s.estimatedArrival!)
+    s => Date.parse(s.actualArrival!) <= Date.parse(s.promisedArrival!)
   ).length;
   return {
     denominator: eligible.length,

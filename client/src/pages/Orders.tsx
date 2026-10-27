@@ -44,7 +44,7 @@ export default function Orders() {
       <PageHeader
         eyebrow="Supply chain"
         title="Orders"
-        description="Read authorized Node operational orders. Amounts retain the source value; no currency is supplied by this contract."
+        description="Review operational orders and their recorded amounts. Unknown currencies stay unlabelled."
       />
       <SourceNote
         count={orders.status === "ready" ? orders.items.length : undefined}
@@ -147,7 +147,7 @@ export default function Orders() {
                   </div>
                   <p className="muted text-xs mt-3">
                     Customer {o.customerId ?? "not supplied"} · Amount{" "}
-                    {o.totalAmount ?? "not supplied"} (currency unknown)
+                    {o.totalAmount ?? "not supplied"} ({o.currency ?? "currency unknown"})
                   </p>
                   <div className="card-bottom mt-3">
                     <span>{formatTime(o.createdAt)}</span>
@@ -190,7 +190,8 @@ export default function Orders() {
             { key: "id", label: "Node record ID" },
             { key: "orderNumber", label: "Order number" },
             { key: "customerId", label: "Customer ID" },
-            { key: "totalAmount", label: "Amount (currency unknown)" },
+            { key: "totalAmount", label: "Amount" },
+            { key: "currency", label: "Currency (blank if unknown)" },
             { key: "status", label: "Status" },
             { key: "createdAt", label: "Created at" },
             { key: "source", label: "Source" },

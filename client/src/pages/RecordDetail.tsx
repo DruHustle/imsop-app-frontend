@@ -118,7 +118,7 @@ function Detail({ kind, id, tracking = false }: Props) {
         title={
           shipment?.trackingNumber ?? order?.orderNumber ?? "Record detail"
         }
-        description={`Stable ${kind === "shipments" ? "shipment" : "Node order"} record ID: ${id}. This is an authorized read, with no operational side effects.`}
+        description={`Review ${kind === "shipments" ? "shipment" : "order"} ${id}, its latest evidence and next steps.`}
       />
       <SourceNote />
       {kind === "shipments" && (

@@ -23,6 +23,7 @@ export interface Source<T> {
   status: SourceStatus;
   items: T[];
   total: number;
+  readAt?: string;
   error?: string;
 }
 export class ReadError extends Error {
@@ -39,10 +40,13 @@ export async function readSource(path: string, signal: AbortSignal) {
     signal,
     headers: { Accept: "application/json" },
   });
+  if (res.status === 401) window.dispatchEvent(new Event('imsop:session-expired'));
   if (!res.ok)
     throw new ReadError(
       res.status,
-      res.status === 403
+      res.status === 401
+        ? "Your session expired. Sign in again to continue."
+        : res.status === 403
         ? "You do not have permission to read this source."
         : res.status === 404
           ? "Record not found."
@@ -52,6 +56,7 @@ export async function readSource(path: string, signal: AbortSignal) {
 }
 interface DataState {
   scope: string;
+  lastShipmentReadAt: string | null;
   mode: Mode;
   setMode: (mode: Mode) => void;
   demoIdentity: boolean;
@@ -78,8 +83,12 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
         ? "demo"
         : "live"
   );
+  const [lastShipmentReadAt,setLastShipmentReadAt]=useState<string|null>(null);
   const [shipments, setShipments] = useState<Source<Shipment>>(loading);
   const [orders, setOrders] = useState<Source<OperationalOrder>>(loading);
+  const selectedFilters=()=>{const q=new URLSearchParams(window.location.hash.split('?')[1]||'');const result=new URLSearchParams();if(window.location.hash.startsWith('#/supply-chain/shipments?'))for(const name of ['q','status','carrier','mode','from','to']){const value=q.get(name);if(value)result.set(name,value);}return result.toString();};
+  const [selection,setSelection]=useState(selectedFilters);
+  useEffect(()=>{let timer:ReturnType<typeof setTimeout>;const change=()=>{clearTimeout(timer);timer=setTimeout(()=>setSelection(selectedFilters()),250);};window.addEventListener('hashchange',change);return()=>{clearTimeout(timer);window.removeEventListener('hashchange',change);};},[]);
   const [version, setVersion] = useState(0);
   const refresh = useCallback(() => setVersion(v => v + 1), []);
   const setMode = (next: Mode) => {
@@ -114,17 +123,27 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
       set: (s: Source<T>) => void
     ) => {
       try {
-        const data = await readSource(
-          `/api/operations/${kind}?limit=500&offset=0`,
-          controller.signal
-        );
-        if (!Array.isArray(data.items))
-          throw new Error(
-            "Unsupported API contract. Deploy the bounded read API."
-          );
-        const items = data.items.map(normalize);
-        if (!controller.signal.aborted)
-          set({ status: "ready", items, total: data.total });
+        const query=new URLSearchParams(window.location.hash.split('?')[1] || '');
+        const selection=new URLSearchParams();
+        if(kind==='shipments' && window.location.hash.startsWith('#/supply-chain/shipments?')) for(const name of ['q','status','carrier','mode','from','to']) {
+          const value=query.get(name); if(value) selection.set(name,value);
+        }
+        selection.set('limit','500');selection.set('offset','0');
+        let data=await readSource(`/api/operations/${kind}?${selection}`,controller.signal);
+        if(!Array.isArray(data.items) || !Number.isSafeInteger(data.total)) throw new Error('Unsupported record response.');
+        if(data.total>10000) throw new Error('More than 10,000 matching records. Refine shipment filters to load a complete selection.');
+        const raw=[...data.items];
+        const total=data.total,readAt=data.readAt || new Date().toISOString();
+        while(data.nextCursor && raw.length<total) {
+          selection.set('maxId',String(data.maxId));selection.set('cursor',String(data.nextCursor));
+          const previous=data.nextCursor;
+          data=await readSource(`/api/operations/${kind}?${selection}`,controller.signal);
+          if(!Array.isArray(data.items) || data.nextCursor===previous) throw new Error('Invalid pagination response.');
+          raw.push(...data.items);
+        }
+        if(raw.length!==total) throw new Error('The selection changed during the read. Refresh to try again.');
+        const items=raw.map(normalize);
+        if(!controller.signal.aborted) {set({status:'ready',items,total,readAt});if(kind==='shipments')setLastShipmentReadAt(readAt);}
       } catch (e) {
         if (controller.signal.aborted && disposed) return;
         set({
@@ -152,10 +171,11 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [mode, version, user?.id, user?.role]);
+  }, [mode, version, user?.id, user?.role, selection]);
   return (
     <DataContext.Provider
       value={{
+        lastShipmentReadAt,
         scope: `${user!.id}:${user!.email}:${demoIdentity ? "demo-account" : "account"}`,
         mode,
         setMode,
