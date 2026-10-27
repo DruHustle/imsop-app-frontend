@@ -34,6 +34,10 @@ test("demo Live selection requests real authentication, preserves the route and 
   for (const theme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme: theme });
     await expect(page.locator("html")).toHaveClass(new RegExp(theme));
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement)?.blur();
+      window.scrollTo(0, 0);
+    });
     await page.screenshot({
       path: `verification/live-mode/sign-in-${test.info().project.name}-${theme}.png`,
       fullPage: true,
@@ -98,6 +102,10 @@ test("demo Live selection requests real authentication, preserves the route and 
   for (const theme of ["light", "dark"] as const) {
     await page.getByLabel("Theme", { exact: true }).selectOption(theme);
     await expect(page.locator("html")).toHaveClass(new RegExp(theme));
+    await page.evaluate(() => {
+      (document.activeElement as HTMLElement)?.blur();
+      window.scrollTo(0, 0);
+    });
     await page.screenshot({
       path: `verification/live-mode/live-${test.info().project.name}-${theme}.png`,
       fullPage: true,
