@@ -45,6 +45,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const closeForNavigation = () => {
     focusAfterNavigation.current = open;
     setOpen(false);
+    window.scrollTo(0, 0);
   };
   const current = routeFor(path);
   useEffect(() => {
@@ -53,7 +54,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (current?.group)
       setCollapsed(prior => ({ ...prior, [current.group]: false }));
     document.title = `${current?.label ?? "Page"} | IMSOP`;
-    const timer = setTimeout(() => main.current?.focus(), 0);
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+      main.current?.focus({ preventScroll: true });
+    }, 0);
     return () => clearTimeout(timer);
   }, [path, current?.label]);
   const navigation = (
@@ -163,7 +167,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         className="skip-link"
         onClick={e => {
           e.preventDefault();
-          main.current?.focus();
+          window.scrollTo(0, 0);
+          main.current?.focus({ preventScroll: true });
         }}
       >
         Skip to main content
@@ -172,7 +177,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="shell-content">
         <header className="shell-header">
           <div className="header-leading">
-            <Sheet open={open} onOpenChange={setOpen}>
+            <Sheet
+              open={open}
+              onOpenChange={next => {
+                setOpen(next);
+                if (next) setCollapsed({});
+              }}
+            >
               <SheetTrigger asChild>
                 <Button
                   variant="ghost"
@@ -181,6 +192,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   className="mobile-menu"
                 >
                   <Menu size={22} />
+                  <span>Menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent
@@ -190,7 +202,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   if (focusAfterNavigation.current) {
                     event.preventDefault();
                     focusAfterNavigation.current = false;
-                    main.current?.focus();
+                    main.current?.focus({ preventScroll: true });
                   }
                 }}
               >
@@ -201,6 +213,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {navigation}
               </SheetContent>
             </Sheet>
+            <span className="mobile-page-label" aria-hidden="true">
+              {current?.label ?? "Workspace"}
+            </span>
             <nav aria-label="Breadcrumb" className="breadcrumbs">
               <Link href="/">Workspace</Link>
               {current?.id !== "overview" && (
