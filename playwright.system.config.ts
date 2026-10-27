@@ -8,7 +8,7 @@ export default defineConfig({
   use: { baseURL: "http://127.0.0.1:4189", trace: "off" },
   webServer: {
     command:
-      "IMSOP_SYSTEM_API=http://127.0.0.1:18067 VITE_BASE_PATH=/ pnpm preview --host 127.0.0.1 --port 4189",
+      "VITE_BASE_PATH=/ pnpm build && IMSOP_SYSTEM_API=http://127.0.0.1:18067 VITE_BASE_PATH=/ pnpm preview --host 127.0.0.1 --port 4189",
     url: "http://127.0.0.1:4189",
     reuseExistingServer: false,
     timeout: 30000,

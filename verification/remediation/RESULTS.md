@@ -1,4 +1,6 @@
-# IMSOP remediation verification — 27 October 2026
+# Initial IMSOP remediation verification — 27 October 2026
+
+Historical initial verification. See [follow-up completion](FOLLOWUP.md) for current application revisions and the completed purchasing/email/forecast workflows.
 
 This current record supplements the dated historical `verification/RESULTS.md`. Historical screenshots remain intact; new evidence lives here. See the [full supplied review](../../docs/remediation/REVIEW-2026-10-26.txt), [IMS-01–IMS-18 closure matrix](../../docs/remediation/CLOSURE.md) and [implemented design reference](../../docs/remediation/DESIGN_REFERENCE.md).
 

@@ -1,0 +1,3 @@
+Command: pnpm exec tsc --noEmit
+Exit status: 0; no diagnostics.
+Application: d243b29dda97b8c43ac669663c80524be3e7c12e

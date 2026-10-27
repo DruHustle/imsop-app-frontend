@@ -169,6 +169,9 @@ test("exact backend mail link works during demo identity, is scrubbed, survives 
   page,
   request,
 }) => {
+  const baseline = (
+    await (await request.get("http://127.0.0.1:18027/messages")).json()
+  ).length;
   const response = await request.post(
     "http://127.0.0.1:18067/api/auth/request-reset",
     {
@@ -184,11 +187,13 @@ test("exact backend mail link works during demo identity, is scrubbed, survives 
         const messages = await (
           await request.get("http://127.0.0.1:18027/messages")
         ).json();
-        const mail = messages.find(
-          (m: any) =>
-            m.text.includes(fixture.email) &&
-            m.text.includes("Subject: Reset your IMSOP password")
-        );
+        const mail = messages
+          .slice(baseline)
+          .find(
+            (m: any) =>
+              m.text.includes(fixture.email) &&
+              m.text.includes("Subject: Reset your IMSOP password")
+          );
         if (mail)
           link =
             mail.text

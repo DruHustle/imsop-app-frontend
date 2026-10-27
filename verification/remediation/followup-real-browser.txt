@@ -1,0 +1,39 @@
+[2m[WebServer] [22m(node:30416) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:30585) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22mnode_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js (400:0): A comment
+[2m[WebServer] [22m
+[2m[WebServer] [22m"// Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle."
+[2m[WebServer] [22m
+[2m[WebServer] [22min "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/util.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+[2m[WebServer] [22mnode_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js (74:0): A comment
+[2m[WebServer] [22m
+[2m[WebServer] [22m"/** Anchors a pattern source. The interpolation lives here rather than at the call site because
+[2m[WebServer] [22m * esbuild will not drop a `@__PURE__` call whose own argument interpolates a variable, but it
+[2m[WebServer] [22m * will drop `anchor(dateSource)`. Keeping it inline pinned `date` into every bundle. */"
+[2m[WebServer] [22m
+[2m[WebServer] [22min "node_modules/.pnpm/zod@4.6.7/node_modules/zod/v4/core/regexes.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+[2m[WebServer] [22m(node:30727) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:30756) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:30757) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:30774) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 10 tests using 1 worker
+
+  ✓   1 system/completion.spec.ts:6:1 › real purchasing, warehouse receiving, email opt-in and validated provider forecasts work in the browser (7.3s)
+  ✓   2 system/real-stack.spec.ts:16:1 › real signed intake, persisted review actions, reload, notifications and exact Assistant context (5.9s)
+  ✓   3 system/real-stack.spec.ts:168:1 › exact backend mail link works during demo identity, is scrubbed, survives retry, and cannot replay (5.9s)
+  ✓   4 system/real-stack.spec.ts:268:1 › actual browser loads beyond 500, finds the old delayed record and exports the same authorized filter (1.9s)
+  ✓   5 system/recovery-matrix.spec.ts:8:5 › real recovery: signed out, emitted link (11.6s)
+  ✓   6 system/recovery-matrix.spec.ts:8:5 › real recovery: signed out, legacy link (12.1s)
+  ✓   7 system/recovery-matrix.spec.ts:8:5 › real recovery: live, emitted link (11.9s)
+  ✓   8 system/recovery-matrix.spec.ts:8:5 › real recovery: live, legacy link (12.3s)
+  ✓   9 system/recovery-matrix.spec.ts:8:5 › real recovery: demo, emitted link (12.0s)
+  ✓  10 system/recovery-matrix.spec.ts:8:5 › real recovery: demo, legacy link (12.1s)
+
+  10 passed (1.7m)
