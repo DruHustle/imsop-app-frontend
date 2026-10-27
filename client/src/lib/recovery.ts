@@ -28,6 +28,7 @@ export function captureResetToken() {
     params.delete("token");
     url.hash = route + (params.size ? "?" + params : "");
     window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    window.dispatchEvent(new Event("imsop:recovery-link"));
   }
   return captured;
 }

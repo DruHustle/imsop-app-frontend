@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrainCircuit, Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   captureResetToken,
@@ -27,9 +27,15 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [token] = useState(captureResetToken);
+  const [token,setToken] = useState(captureResetToken);
+  const linkVersion=useRef(0);
   const [error, setError] = useState("");
 
+  useEffect(()=>{
+    const receive=()=>{linkVersion.current++;setToken(captureResetToken());setSuccess(false);setError('');setPassword('');setConfirmPassword('');setIsLoading(false);};
+    window.addEventListener('imsop:recovery-link',receive);
+    return()=>window.removeEventListener('imsop:recovery-link',receive);
+  },[]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -48,11 +54,13 @@ export default function ResetPassword() {
       return;
     }
 
+    const submittedVersion=linkVersion.current;
     setError("");
     setIsLoading(true);
 
     try {
       const result = await resetPassword(token, password);
+      if(submittedVersion!==linkVersion.current)return;
       if (result.success) {
         forgetResetToken();
         setSuccess(true);
@@ -62,11 +70,12 @@ export default function ResetPassword() {
         );
       }
     } catch (error) {
+      if(submittedVersion!==linkVersion.current)return;
       setError(
         "Could not reach the server. Your link is retained here; retry."
       );
     } finally {
-      setIsLoading(false);
+      if(submittedVersion===linkVersion.current)setIsLoading(false);
     }
   };
 
