@@ -1,12 +1,12 @@
 import { NotificationDeliveryPreferences } from "@/components/NotificationDeliveryPreferences";
 import { PageHeader, Panel } from "@/components/Workspace";
-import { useTheme, usePreferences, Theme } from "@/contexts/ThemeContext";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { usePreferences } from "@/contexts/ThemeContext";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 export default function Settings() {
-  const { theme, setTheme } = useTheme();
   const { preferences, update } = usePreferences();
   const { mode } = useData();
   const { user } = useAuth();
@@ -21,21 +21,12 @@ export default function Settings() {
         <Panel title="Appearance">
           <div className="preference-row">
             <div>
-              <label htmlFor="preference-theme">Theme</label>
+              <h3>Theme</h3>
               <p className="muted">
-                System follows your operating-system preference.
+                Auto follows your device’s light or dark setting.
               </p>
             </div>
-            <select
-              id="preference-theme"
-              value={theme}
-              className="bg-card border rounded p-2"
-              onChange={e => setTheme(e.target.value as Theme)}
-            >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-              <option value="system">System</option>
-            </select>
+            <ThemeSwitcher labelled label="Appearance theme" />
           </div>
           <div className="preference-row">
             <div>

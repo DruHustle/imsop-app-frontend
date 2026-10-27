@@ -124,7 +124,10 @@ test("real purchasing, warehouse receiving, email opt-in and validated provider 
   await page.getByText("Forecast evidence", { exact: true }).first().click();
   await expect(page.getByText(/isolated-contract-double-v1/)).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByLabel("Theme", { exact: true }).selectOption("dark");
+  await page
+    .getByRole("radiogroup", { name: "Theme", exact: true })
+    .getByRole("radio", { name: "Dark theme", exact: true })
+    .click();
   await page.screenshot({
     path: "verification/remediation/forecast-mobile-dark.png",
     fullPage: true,

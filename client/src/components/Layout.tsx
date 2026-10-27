@@ -29,7 +29,7 @@ import {
 } from "./ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useData } from "@/contexts/DataContext";
-import { useTheme } from "@/contexts/ThemeContext";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 import { routes, permitted, routeFor } from "@/lib/routes";
 import NotificationCenter from "./NotificationCenter";
 import { SectionNav } from "./Workspace";
@@ -38,7 +38,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [path, navigate] = useLocation();
   const { user, logout } = useAuth();
   const { mode, setMode, demoIdentity } = useData();
-  const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const main = useRef<HTMLElement>(null);
@@ -236,20 +235,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <option value="demo">Demo</option>
               </select>
             </label>
-            <label className="header-select theme-select">
-              <span className="sr-only">Theme</span>
-              <select
-                aria-label="Theme"
-                value={theme}
-                onChange={e =>
-                  setTheme(e.target.value as "light" | "dark" | "system")
-                }
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="system">System</option>
-              </select>
-            </label>
+            <ThemeSwitcher />
             <NotificationCenter />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
