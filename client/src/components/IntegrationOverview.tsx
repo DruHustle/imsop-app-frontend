@@ -1,35 +1,53 @@
-import {Button} from "./ui/button";
+import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { useData, readSource } from "@/contexts/DataContext";
 import { Panel, StatusBadge } from "./Workspace";
 import { IntegrationCard } from "./Board";
 import { formatTime } from "@/lib/workspace";
 export function IntegrationOverview() {
-  const [version,setVersion]=useState(0);
+  const [version, setVersion] = useState(0);
+  const [mailAvailable, setMailAvailable] = useState(false),
+    [forecastsConfigured, setForecastsConfigured] = useState(false);
   const { mode, shipments } = useData(),
     [registry, setRegistry] = useState<any[]>([]),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(mode === "live");
   useEffect(() => {
     if (mode === "demo") return;
-    let disposed=false;
+    let disposed = false;
     setLoading(true);
     const c = new AbortController(),
       timer = setTimeout(() => c.abort(), 10000);
     readSource("/api/operations/integrations", c.signal)
-      .then(r => setRegistry(r.items))
+      .then(r => {
+        setRegistry(r.items);
+        setMailAvailable(r.externalNotifications === true);
+      })
       .catch(e => {
-        if (!disposed) setError(c.signal.aborted?'Source configuration read timed out. Retry the source read.':e.message);
+        if (!disposed)
+          setError(
+            c.signal.aborted
+              ? "Source configuration read timed out. Retry the source read."
+              : e.message
+          );
       })
       .finally(() => {
         clearTimeout(timer);
         setLoading(false);
       });
+    readSource("/api/operations/forecasts", c.signal)
+      .then(r => {
+        if (!disposed) setForecastsConfigured(r.configured === true);
+      })
+      .catch(() => {
+        if (!disposed) setForecastsConfigured(false);
+      });
     return () => {
-      disposed=true;clearTimeout(timer);
+      disposed = true;
+      clearTimeout(timer);
       c.abort();
     };
-  }, [mode,version]);
+  }, [mode, version]);
   const recent =
     shipments.status === "ready"
       ? shipments.items
@@ -39,7 +57,21 @@ export function IntegrationOverview() {
       : [];
   return (
     <>
-      {mode==='live'&&<div className="actions"><Button variant="outline" size="sm" disabled={loading} onClick={()=>{setError('');setVersion(v=>v+1);}}>Refresh sources</Button></div>}
+      {mode === "live" && (
+        <div className="actions">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={loading}
+            onClick={() => {
+              setError("");
+              setVersion(v => v + 1);
+            }}
+          >
+            Refresh sources
+          </Button>
+        </div>
+      )}
       {loading && <p role="status">Loading source configuration…</p>}
       {error && (
         <p role="alert" className="source-note">
@@ -128,30 +160,38 @@ export function IntegrationOverview() {
         <IntegrationCard
           kind="mail"
           title="Email notifications"
-          state="Not configured"
-          description="In-app review notices remain available"
+          state={
+            mode === "live" && mailAvailable ? "Configured" : "Not configured"
+          }
+          description="Opt in through Preferences when delivery is enabled"
         >
           <details>
             <summary>View requirements</summary>
             <p>
-              Operational email delivery requires a configured durable delivery
-              integration. Password-recovery delivery is separate and does not
-              establish operational notification capability.
+              Operational review emails use a durable queue, bounded retries and
+              per-workspace opt-in. The administrator must enable operational
+              email delivery and configure a mail provider. Password-recovery
+              email is separate.
             </p>
           </details>
         </IntegrationCard>
         <IntegrationCard
           kind="forecast"
           title="Forecast provider"
-          state="Not configured"
+          state={
+            mode === "live" && forecastsConfigured
+              ? "Configured"
+              : "Not configured"
+          }
           description="Optional forecast capability"
         >
           <details>
             <summary>View requirements</summary>
             <p>
-              A provider must define forecast horizon, source observation dates,
-              model/version and an evidence contract. No model subscription is
-              required for exception review.
+              The validated server adapter requires a provider URL/name and
+              source observations. Responses must match products, dates, units
+              and snapshot. Configure credentials on the server, then supply
+              observations and request a forecast in Recommendations.
             </p>
           </details>
         </IntegrationCard>

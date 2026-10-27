@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, rm, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
@@ -42,3 +42,32 @@ test("does not pass an absent build", () =>
   fixture(async directory => {
     await assert.rejects(verifyDeployment(directory), /Build the frontend/);
   }));
+
+test("purchasing keeps first-party cookie requests out of the SPA fallback", async () => {
+  const config = JSON.parse(
+    await readFile(new URL("../vercel.json", import.meta.url), "utf8")
+  );
+  const index = config.rewrites.findIndex(
+    route => route.source === "/supply-chain/:path*"
+  );
+  assert(
+    index >= 0 &&
+      index <
+        config.rewrites.findIndex(route => route.destination === "/index.html")
+  );
+  assert.equal(
+    config.rewrites[index].destination,
+    "https://imsop-api.152-70-22-84.sslip.io/supply-chain/:path*"
+  );
+  assert(
+    config.headers.some(
+      route =>
+        route.source === "/supply-chain/:path*" &&
+        route.headers.some(
+          header =>
+            header.key === "Cache-Control" &&
+            header.value === "private, no-store"
+        )
+    )
+  );
+});

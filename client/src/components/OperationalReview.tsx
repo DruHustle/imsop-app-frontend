@@ -309,7 +309,7 @@ export function LiveNotifications() {
   return (
     <>
       <p className="p-4 text-sm">
-        In-app review notifications · External delivery unavailable
+        In-app review notifications · Email preferences in Preferences
       </p>
       <Button size="sm" variant="ghost" onClick={load}>
         Refresh notifications

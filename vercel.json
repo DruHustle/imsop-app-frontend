@@ -2,6 +2,10 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/supply-chain/:path*",
+      "destination": "https://imsop-api.152-70-22-84.sslip.io/supply-chain/:path*"
+    },
+    {
       "source": "/health",
       "destination": "https://imsop-api.152-70-22-84.sslip.io/health"
     },
@@ -35,6 +39,15 @@
     }
   ],
   "headers": [
+    {
+      "source": "/supply-chain/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        }
+      ]
+    },
     {
       "source": "/api/:path*",
       "headers": [

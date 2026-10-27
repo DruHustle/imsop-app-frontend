@@ -1,6 +1,6 @@
 import { useData } from "@/contexts/DataContext";
 import { PageHeader, SourceNote } from "@/components/Workspace";
-import { Notice } from "@/components/Board";
+import { Forecasts } from "@/components/Forecasts";
 import { OperationalReview } from "@/components/OperationalReview";
 import { DemoReview } from "@/components/DemoReview";
 export default function Intelligence() {
@@ -12,22 +12,22 @@ export default function Intelligence() {
         description="Review exceptions and decide what to do next"
       />
       <SourceNote />
-      <Notice title="Forecasts not configured">
-        Review guidance uses recorded shipment events. Predictions and automated
-        operational changes are unavailable.
-      </Notice>
       {mode === "demo" ? <DemoReview /> : <OperationalReview />}
+      <details className="source-details">
+        <summary>Forecast evidence</summary>
+        <Forecasts />
+      </details>
       <details className="source-details">
         <summary>
           {mode === "live"
-            ? "Live forecasts not configured"
+            ? "About forecast providers"
             : "About demonstration reviews"}
         </summary>
         <p>
-          Forecasts need an optional provider with a defined horizon and
-          evidence contract. Review actions document human follow-up and do not
-          change delivery status, inventory or bookings. Demo actions persist
-          only on this device.
+          Forecasts use explicitly supplied source observations and the
+          configured provider evidence contract. Review actions document human
+          follow-up and do not change delivery status, inventory or bookings.
+          Demo actions persist only on this device.
         </p>
       </details>
     </>

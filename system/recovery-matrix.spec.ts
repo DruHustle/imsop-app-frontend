@@ -74,7 +74,11 @@ for (const identity of ["signed out", "live", "demo"])
               await (
                 await request.get("http://127.0.0.1:18027/messages")
               ).json()
-            ).find((m: any) => m.text.includes(email));
+            ).find(
+              (m: any) =>
+                m.text.includes(email) &&
+                m.text.includes("Subject: Reset your IMSOP password")
+            );
             if (mail)
               link =
                 mail.text

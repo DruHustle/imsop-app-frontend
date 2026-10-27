@@ -104,7 +104,7 @@ test("real signed intake, persisted review actions, reload, notifications and ex
     .click();
   await expect(
     page.getByText(
-      "In-app review notifications · External delivery unavailable"
+      "In-app review notifications · Email preferences in Preferences"
     )
   ).toBeVisible();
   const notifications = page.locator('[data-slot="popover-content"]');
@@ -184,7 +184,11 @@ test("exact backend mail link works during demo identity, is scrubbed, survives 
         const messages = await (
           await request.get("http://127.0.0.1:18027/messages")
         ).json();
-        const mail = messages.find((m: any) => m.text.includes(fixture.email));
+        const mail = messages.find(
+          (m: any) =>
+            m.text.includes(fixture.email) &&
+            m.text.includes("Subject: Reset your IMSOP password")
+        );
         if (mail)
           link =
             mail.text

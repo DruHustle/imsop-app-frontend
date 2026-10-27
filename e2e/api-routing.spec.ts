@@ -149,7 +149,7 @@ test("live assistant uses permitted records and infrastructure remains honestly 
   );
   await navigate(page, "Recommendations");
   await expect(
-    page.getByText("Live forecasts not configured", {exact:true})
+    page.getByText("Forecast evidence", { exact: true }).first()
   ).toBeVisible();
   await navigate(page, "Service health");
   await expect(page.getByText("Degraded", { exact: true })).toBeVisible();
@@ -165,7 +165,7 @@ test("live assistant uses permitted records and infrastructure remains honestly 
   await expect(
     page.getByText("Demo API process", { exact: true })
   ).toBeHidden();
-  await navigate(page,"Integrations");
+  await navigate(page, "Integrations");
   await expect(
     page.getByRole("heading", { name: "Carrier webhooks" })
   ).toBeVisible();
@@ -174,7 +174,7 @@ test("live assistant uses permitted records and infrastructure remains honestly 
     .click();
   await expect(
     page.getByText(
-      "In-app review notifications · External delivery unavailable"
+      "In-app review notifications · Email preferences in Preferences"
     )
   ).toBeVisible();
 });

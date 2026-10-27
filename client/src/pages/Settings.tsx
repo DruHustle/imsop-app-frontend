@@ -1,3 +1,4 @@
+import { NotificationDeliveryPreferences } from "@/components/NotificationDeliveryPreferences";
 import { PageHeader, Panel } from "@/components/Workspace";
 import { useTheme, usePreferences, Theme } from "@/contexts/ThemeContext";
 import { useData } from "@/contexts/DataContext";
@@ -73,7 +74,7 @@ export default function Settings() {
               <p className="muted">
                 {mode === "demo"
                   ? "Show demonstration shipment exceptions in the notification panel."
-                  : "This preference applies only to Demo mode. Production notifications are not configured."}
+                  : "This preference applies only to Demo mode. Review email preferences are available below."}
               </p>
             </div>
             <Switch
@@ -85,19 +86,7 @@ export default function Settings() {
               }
             />
           </div>
-          {["Critical infrastructure alerts", "Email digest"].map(
-            (label, i) => (
-              <div key={label} className="preference-row">
-                <div>
-                  <label htmlFor={`delivery-${i}`}>{label}</label>
-                  <p className="muted">
-                    Delivery and server-side preferences are not configured.
-                  </p>
-                </div>
-                <Switch id={`delivery-${i}`} checked={false} disabled />
-              </div>
-            )
-          )}
+          <NotificationDeliveryPreferences />
         </Panel>
         <Panel title="Security capabilities">
           <div className="preference-row">

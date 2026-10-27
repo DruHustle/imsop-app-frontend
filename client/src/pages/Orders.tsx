@@ -1,3 +1,4 @@
+import { Purchasing } from "@/components/Purchasing";
 import { RecordPreview } from "@/components/Board";
 import { Link, useLocation } from "wouter";
 import { useHashQuery } from "@/lib/hash-location";
@@ -228,15 +229,7 @@ export default function Orders() {
           scope={`${items.length} filtered of newest ${orders.items.length} operational orders; search=${q}; status=${status || "all"}`}
         />
       </div>
-      <details className="source-details">
-        <summary>Purchase intake and source details</summary>
-        <p className="muted text-xs">
-          Purchase intake is available through the validated purchasing API. A
-          purchasing form remains unavailable until complete item selection and
-          receiving workflows are supported. Operational order IDs come from
-          this source; purchasing uses a separate organization-scoped service.
-        </p>
-      </details>
+      <Purchasing />
     </>
   );
 }
