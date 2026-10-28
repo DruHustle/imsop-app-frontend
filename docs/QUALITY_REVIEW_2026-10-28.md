@@ -6,7 +6,7 @@ Frontend corrections include source-level order filters and customer search, exa
 
 Production build output includes `/release.json`. `/version` is forwarded to the backend before the SPA fallback. Deployment verification rejects HTML fallbacks, missing/incorrect source revisions, missing purchasing capabilities, unready dependencies and anonymous access to operational or purchasing data.
 
-Vercel production publication is owned by `.github/workflows/cicd-pipeline.yml`; automatic Git production deployment on main is disabled so it cannot bypass qualification. Branch previews remain available. The secondary Pages publication also checks backend compatibility. Missing deployment credentials now fail explicitly. The workflow accepts manual dispatch after the Oracle release is installed, as well as a qualified push to main.
+Vercel production publication is owned by `.github/workflows/cicd-pipeline.yml`; automatic Git production deployment on main is disabled so it cannot bypass qualification. Branch previews remain available. The secondary Pages publication was retired at the owner's request; Oracle/Vercel is the only supported production path. Missing deployment credentials fail explicitly. The workflow accepts manual dispatch after the Oracle release is installed, as well as a qualified push to main.
 
 The supported release order is backend first, frontend second. The frontend workflow resolves backend main, requires the installed Oracle `/version` to match that exact revision and capabilities, then builds/deploys and verifies the frontend SHA plus first-party API again. It must not publish the new purchase catalog client against the old runtime.
 

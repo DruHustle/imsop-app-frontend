@@ -16,7 +16,7 @@ function sourceRevision() {
   }
 }
 
-const basePath = process.env.VITE_BASE_PATH || "/imsop-app-frontend/";
+const basePath = process.env.VITE_BASE_PATH || "/";
 
 const isolatedProxy =
   process.env.IMSOP_SYSTEM_API === "http://127.0.0.1:18067"

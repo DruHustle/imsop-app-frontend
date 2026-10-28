@@ -24,7 +24,7 @@ pnpm e2e
 pnpm audit --prod --audit-level=moderate
 ```
 
-`pnpm build` includes retired-endpoint verification over lazy chunks. Root-base builds retain first-party Vercel calls; default `/imsop-app-frontend/` supports Pages. Existing `VITE_API_URL`, unified API-origin logic and optional `VITE_GOOGLE_MAPS_API_KEY` remain. Maps stay secondary and missing coordinates remain inspectable.
+`pnpm build` includes retired-endpoint verification over lazy chunks. The default root-base build targets **https://imsop-app.vercel.app** and retains first-party API calls to Oracle. GitHub Pages publishing, its CLI dependency and the destructive legacy deploy script are retired. `pnpm deploy` dispatches the existing qualified `main` Vercel workflow; its backend compatibility gate remains required. Existing `VITE_API_URL`, unified API-origin logic and optional `VITE_GOOGLE_MAPS_API_KEY` remain. Maps stay secondary and missing coordinates remain inspectable.
 
 Ordinary E2E uses isolated browser fixtures and preview port 4188. Actual system/browser tests are separate:
 
@@ -38,3 +38,5 @@ The system suite uses real PostgreSQL, Node, YARP, .NET and memory-only SMTP/tra
 [Current review and closure](docs/remediation/CLOSURE.md) · [Current verification](verification/remediation/RESULTS.md) · [Historical verification](verification/RESULTS.md). No production merge/deployment/provider connection is performed by this remediation.
 
 The graphical Overview combines an authorized creation-time chart, status distribution, actionable exceptions and geographic map/optional 3D globe. Workspaces use distinct evidence visuals, with keyboard controls, mobile layouts and the existing themes. See [visual design and data semantics](docs/remediation/DESIGN_REFERENCE.md) and [final verification](verification/remediation/FOLLOWUP.md).
+
+3D view rotation is opt-in, stops on manual interaction and follows reduced-motion preferences. It changes the camera, never predicts shipment movement. Integrations distinguishes configuration from unreadable sources and manual SAP metadata receipts; order dispatch displays actual durable outbox states. Production provisioning and external activation remain separate pending items. [Adapter scope and activation requirements](https://github.com/DruHustle/imsop-app-backend/blob/main/docs/OPTIONAL_INTEGRATIONS.md) describe server-only credential references and approved workspace mappings.

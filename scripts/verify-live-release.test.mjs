@@ -17,7 +17,10 @@ test("release verification rejects HTML fallbacks, old runtimes, mismatched revi
         ? {
             revision: sha,
             apiContract: 2,
-            capabilities: mode === "old" ? [] : ["purchase-pagination-v1"],
+            capabilities:
+              mode === "old"
+                ? []
+                : ["purchase-pagination-v1", "optional-adapters-v1"],
           }
         : path === "/ready"
           ? { status: "ready" }

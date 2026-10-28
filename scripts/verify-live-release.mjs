@@ -16,7 +16,10 @@ async function json(origin, path) {
   return response.json();
 }
 export async function verifyApiRelease(origin, expected) {
-  assert(revision.test(expected || ""), "An exact backend revision is required");
+  assert(
+    revision.test(expected || ""),
+    "An exact backend revision is required"
+  );
   const version = await json(origin, "/version");
   assert(
     revision.test(version.revision || ""),
@@ -32,6 +35,10 @@ export async function verifyApiRelease(origin, expected) {
   assert(
     version.capabilities?.includes("purchase-pagination-v1"),
     "The backend does not support the required purchasing pages"
+  );
+  assert(
+    version.capabilities?.includes("optional-adapters-v1"),
+    "The backend does not support explicit optional adapter configuration"
   );
   assert.equal(
     (await json(origin, "/ready")).status,

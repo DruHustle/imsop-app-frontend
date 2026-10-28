@@ -1,52 +1,93 @@
 import { ConnectionFlow } from "./WorkspaceVisuals";
 import { Button } from "./ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useData, readSource } from "@/contexts/DataContext";
 import { Panel, StatusBadge } from "./Workspace";
 import { IntegrationCard } from "./Board";
 import { formatTime } from "@/lib/workspace";
 export function IntegrationOverview() {
+  const metadataRequest = useRef<AbortController | null>(null);
   const [version, setVersion] = useState(0);
-  const [mailAvailable, setMailAvailable] = useState(false),
-    [forecastsConfigured, setForecastsConfigured] = useState(false);
+  const [mailState, setMailState] = useState("Not configured"),
+    [forecastState, setForecastState] = useState("Not configured"),
+    [sapState, setSapState] = useState("Not configured"),
+    [transportState, setTransportState] = useState("Not configured"),
+    [outbox, setOutbox] = useState<{ state: string; count: number }[]>([]),
+    [metadata, setMetadata] = useState(""),
+    [checkingMetadata, setCheckingMetadata] = useState(false);
   const { mode, shipments } = useData(),
     [registry, setRegistry] = useState<any[]>([]),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(mode === "live");
   useEffect(() => {
+    metadataRequest.current?.abort();
+    metadataRequest.current = null;
+    setCheckingMetadata(false);
     if (mode === "demo") return;
     let disposed = false;
     setLoading(true);
+    setForecastState("Checking");
+    setSapState("Checking");
+    setTransportState("Checking");
+    setMailState("Checking");
+    setRegistry([]);
+    setOutbox([]);
+    setMetadata("");
     const c = new AbortController(),
       timer = setTimeout(() => c.abort(), 10000);
-    readSource("/api/operations/integrations", c.signal)
+    const label = (value: unknown) =>
+      value === "configured"
+        ? "Configured"
+        : value === "not-configured"
+          ? "Not configured"
+          : value === "not-authorized"
+            ? "Not authorized"
+            : "Unavailable";
+    const registryRead = readSource("/api/operations/integrations", c.signal)
       .then(r => {
+        if (disposed) return;
         setRegistry(r.items);
-        setMailAvailable(r.externalNotifications === true);
+        setMailState(
+          r.externalNotifications === true ? "Configured" : "Not configured"
+        );
+        setForecastState(label(r.adapters?.forecast?.state));
+        setSapState(label(r.adapters?.sap?.state));
       })
       .catch(e => {
-        if (!disposed)
+        if (!disposed) {
+          setForecastState("Unavailable");
+          setSapState("Unavailable");
+          setMailState("Unavailable");
           setError(
             c.signal.aborted
               ? "Source configuration read timed out. Retry the source read."
               : e.message
           );
-      })
-      .finally(() => {
-        clearTimeout(timer);
-        setLoading(false);
+        }
       });
-    readSource("/api/operations/forecasts", c.signal)
+    const transportRead = readSource(
+      "/supply-chain/api/v1/orders/transport",
+      c.signal
+    )
       .then(r => {
-        if (!disposed) setForecastsConfigured(r.configured === true);
+        if (!disposed) {
+          setTransportState(label(r.state));
+          setOutbox(Array.isArray(r.outbox) ? r.outbox : []);
+        }
       })
       .catch(() => {
-        if (!disposed) setForecastsConfigured(false);
+        if (!disposed) setTransportState("Unavailable");
       });
+    void Promise.all([registryRead, transportRead]).finally(() => {
+      clearTimeout(timer);
+      if (!disposed) setLoading(false);
+    });
     return () => {
       disposed = true;
       clearTimeout(timer);
       c.abort();
+      metadataRequest.current?.abort();
+      metadataRequest.current = null;
     };
   }, [mode, version]);
   const recent =
@@ -164,23 +205,70 @@ export function IntegrationOverview() {
         <IntegrationCard
           kind="source"
           title="SAP"
-          state="Not configured"
-          description="No connection configured"
+          state={mode === "live" ? sapState : "Not configured"}
+          description="Read-only OData metadata adapter · business synchronization not activated"
         >
           <details>
             <summary>View requirements</summary>
             <p>
-              A SAP connector and authorized tenant mapping are not implemented.
-              No provider account can be connected from this screen.
+              An administrator must explicitly enable the adapter, supply an
+              approved service URL, a server-side credential reference and
+              authorized workspace IDs. A metadata receipt verifies only the
+              service schema. Business record mappings and synchronization
+              require separate approval.
             </p>
           </details>
+          {mode === "live" && sapState === "Configured" && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={checkingMetadata}
+              onClick={async () => {
+                const request = new AbortController();
+                metadataRequest.current?.abort();
+                metadataRequest.current = request;
+                const timer = setTimeout(() => request.abort(), 15000);
+                setCheckingMetadata(true);
+                setMetadata("");
+                try {
+                  const receipt = await readSource(
+                    "/api/operations/integrations/sap/metadata",
+                    request.signal
+                  );
+                  if (
+                    metadataRequest.current === request &&
+                    !request.signal.aborted
+                  )
+                    setMetadata(
+                      `Metadata observed ${formatTime(receipt.checkedAt)} · ${receipt.bytes} bytes · SHA-256 ${receipt.sha256}. No business records imported.`
+                    );
+                } catch {
+                  if (metadataRequest.current === request)
+                    setMetadata(
+                      "Metadata unavailable. Configuration does not establish a verified connection."
+                    );
+                } finally {
+                  clearTimeout(timer);
+                  if (metadataRequest.current === request) {
+                    setCheckingMetadata(false);
+                    metadataRequest.current = null;
+                  }
+                }
+              }}
+            >
+              {checkingMetadata ? "Checking metadata…" : "Check SAP metadata"}
+            </Button>
+          )}
+          {metadata && (
+            <p role="status" className="muted text-xs">
+              {metadata}
+            </p>
+          )}
         </IntegrationCard>
         <IntegrationCard
           kind="mail"
           title="Email notifications"
-          state={
-            mode === "live" && mailAvailable ? "Configured" : "Not configured"
-          }
+          state={mode === "live" ? mailState : "Not configured"}
           description="Opt in through Preferences when delivery is enabled"
         >
           <details>
@@ -196,22 +284,44 @@ export function IntegrationOverview() {
         <IntegrationCard
           kind="forecast"
           title="Forecast provider"
-          state={
-            mode === "live" && forecastsConfigured
-              ? "Configured"
-              : "Not configured"
-          }
+          state={mode === "live" ? forecastState : "Not configured"}
           description="Optional forecast capability"
         >
           <details>
             <summary>View requirements</summary>
             <p>
-              The validated server adapter requires a provider URL/name and
-              source observations. Responses must match products, dates, units
-              and snapshot. Configure credentials on the server, then supply
+              The administrator must explicitly enable the validated server
+              adapter with an approved provider URL/name and source
+              observations. Responses must match products, dates, units and
+              snapshot. Configure credentials on the server, then supply
               observations and request a forecast in Recommendations.
             </p>
           </details>
+        </IntegrationCard>
+        <IntegrationCard
+          kind="source"
+          title="Order dispatch"
+          state={mode === "live" ? transportState : "Not configured"}
+          description="Durable purchase outbox · transport acceptance does not confirm fulfillment"
+        >
+          <details>
+            <summary>View requirements</summary>
+            <p>
+              Dispatch is disabled by default. Activation requires an approved
+              Azure Service Bus queue and server-side credential reference.
+              Saved orders and their outbox states are preserved during outages
+              and retries.
+            </p>
+          </details>
+          {mode === "live" && outbox.length > 0 && (
+            <ul aria-label="Actual purchase outbox states">
+              {outbox.map(row => (
+                <li key={row.state}>
+                  {row.state}: {row.count}
+                </li>
+              ))}
+            </ul>
+          )}
         </IntegrationCard>
       </div>
       <Panel

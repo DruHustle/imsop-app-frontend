@@ -63,6 +63,13 @@ test("graphical overview keeps scopes, chart totals, locations and selected reco
   await expect(page.locator(".shipment-globe, .geographic-map")).toBeVisible();
   const canvas = page.locator(".shipment-globe");
   if (await canvas.isVisible()) {
+    await expect(page.getByRole("button", { name: "Rotate view", exact: true })).toBeDisabled();
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.getByRole("button", { name: "Rotate view", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Pause view rotation", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByText(/View rotation changes the camera only/)).toBeVisible();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(page.getByRole("button", { name: "Rotate view", exact: true })).toBeDisabled();
     for (const theme of ["light", "dark"]) {
       await page
         .getByRole("radiogroup", { name: "Theme", exact: true })
