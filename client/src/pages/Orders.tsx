@@ -95,6 +95,22 @@ export default function Orders() {
               ))}
             </select>
           </label>
+          <label className="field">
+            Created from
+            <input
+              type="date"
+              value={params.get("from") ?? ""}
+              onChange={e => set("from", e.target.value)}
+            />
+          </label>
+          <label className="field">
+            Created through
+            <input
+              type="date"
+              value={params.get("to") ?? ""}
+              onChange={e => set("to", e.target.value)}
+            />
+          </label>
           <Button
             variant="ghost"
             onClick={() => {
@@ -242,7 +258,7 @@ export default function Orders() {
             { key: "createdAt", label: "Created at" },
             { key: "source", label: "Source" },
           ]}
-          scope={`${items.length} filtered of newest ${orders.items.length} operational orders; search=${q}; status=${status || "all"}`}
+          scope={`${items.length} matching operational orders; search=${q}; status=${status || "all"}; from=${params.get("from") || "any"}; to=${params.get("to") || "any"}`}
         />
       </div>
       <Purchasing />

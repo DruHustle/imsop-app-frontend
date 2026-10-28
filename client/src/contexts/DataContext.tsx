@@ -102,6 +102,7 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
     if (
       onOverview() ||
       window.location.hash.startsWith("#/supply-chain/shipments?") ||
+      window.location.hash.startsWith("#/supply-chain/orders?") ||
       window.location.hash.startsWith("#/insights/analytics?")
     )
       for (const name of ["q", "status", "carrier", "mode", "from", "to"]) {
@@ -168,13 +169,19 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
         );
         const selection = new URLSearchParams();
         if (
-          kind === "shipments" &&
-          (window.location.hash.startsWith("#/supply-chain/shipments?") ||
-            window.location.hash.startsWith("#/insights/analytics?"))
+          (kind === "shipments" &&
+            (window.location.hash.startsWith("#/supply-chain/shipments?") ||
+              window.location.hash.startsWith("#/insights/analytics?"))) ||
+          (kind === "orders" &&
+            window.location.hash.startsWith("#/supply-chain/orders?"))
         )
           for (const name of ["q", "status", "carrier", "mode", "from", "to"]) {
             const value = query.get(name);
-            if (value) selection.set(name, value);
+            if (
+              value &&
+              (kind === "shipments" || !["carrier", "mode"].includes(name))
+            )
+              selection.set(name, value);
           }
         if (onOverview()) {
           const dates = overviewScope(query, mode);
@@ -196,7 +203,7 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
           throw new Error("Unsupported record response.");
         if (data.total > 10000)
           throw new Error(
-            "More than 10,000 matching records. Refine shipment filters to load a complete selection."
+            `More than 10,000 matching records. Refine ${kind} filters to load a complete selection.`
           );
         const raw = [...data.items];
         const total = data.total,

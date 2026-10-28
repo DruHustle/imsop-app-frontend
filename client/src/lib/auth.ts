@@ -63,8 +63,21 @@ export class MockAuthService implements IAuthService {
   logout = () =>
     [TOKEN_KEY, SESSION_KEY].forEach(k => safeLocalStorage.removeItem(k));
   async getCurrentUser(): Promise<AuthResponse> {
-    const user = JSON.parse(safeLocalStorage.getItem(SESSION_KEY) || "null");
-    return { success: !!user, user };
+    try {
+      const user = JSON.parse(safeLocalStorage.getItem(SESSION_KEY) || "null");
+      const account = DEMO_USERS.find(
+        u =>
+          u.id === user?.id && u.email === user?.email && u.role === user?.role
+      );
+      if (!account || typeof user.name !== "string") {
+        this.logout();
+        return { success: false };
+      }
+      return { success: true, user };
+    } catch {
+      this.logout();
+      return { success: false };
+    }
   }
   register = async () => ({
     success: false,

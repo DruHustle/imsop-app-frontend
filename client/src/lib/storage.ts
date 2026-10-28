@@ -1,125 +1,60 @@
-/**
- * A safe wrapper for localStorage and sessionStorage that handles Safari Private Browsing mode
- * and other environments where storage might be restricted.
- */
-
-const isStorageAvailable = (type: 'localStorage' | 'sessionStorage'): boolean => {
+/** Fall back consistently if storage is blocked or becomes unavailable at runtime. */
+export function createSafeStorage(type: "localStorage" | "sessionStorage") {
+  const memory = new Map<string, string>();
+  let available = true;
   try {
     const storage = window[type];
-    const x = '__storage_test__';
-    storage.setItem(x, x);
-    storage.removeItem(x);
-    return true;
-  } catch (e) {
-    return false;
+    const probe = "__imsop_storage_probe__";
+    storage.setItem(probe, probe);
+    storage.removeItem(probe);
+  } catch {
+    available = false;
   }
-};
-
-const storageAvailable = {
-  local: isStorageAvailable('localStorage'),
-  session: isStorageAvailable('sessionStorage'),
-};
-
-// In-memory fallback for when storage is not available
-const memoryStorage: Record<string, string> = {};
-const sessionMemoryStorage: Record<string, string> = {};
-
-export const safeLocalStorage = {
-  getItem: (key: string): string | null => {
-    if (storageAvailable.local) {
-      try {
-        return localStorage.getItem(key);
-      } catch (e) {
-        return memoryStorage[key] || null;
-      }
-    }
-    return memoryStorage[key] || null;
-  },
-  setItem: (key: string, value: string): void => {
-    if (storageAvailable.local) {
-      try {
-        localStorage.setItem(key, value);
-      } catch (e) {
-        memoryStorage[key] = value;
-      }
-    } else {
-      memoryStorage[key] = value;
-    }
-  },
-  removeItem: (key: string): void => {
-    if (storageAvailable.local) {
-      try {
-        localStorage.removeItem(key);
-      } catch (e) {
-        delete memoryStorage[key];
-      }
-    } else {
-      delete memoryStorage[key];
-    }
-  },
-  clear: (): void => {
-    if (storageAvailable.local) {
-      try {
-        localStorage.clear();
-      } catch (e) {
-        for (const key in memoryStorage) {
-          delete memoryStorage[key];
+  return {
+    getItem(key: string): string | null {
+      if (available) {
+        try {
+          const value = window[type].getItem(key);
+          if (value === null) memory.delete(key);
+          else memory.set(key, value);
+          return value;
+        } catch {
+          available = false;
         }
       }
-    } else {
-      for (const key in memoryStorage) {
-        delete memoryStorage[key];
-      }
-    }
-  }
-};
-
-export const safeSessionStorage = {
-  getItem: (key: string): string | null => {
-    if (storageAvailable.session) {
-      try {
-        return sessionStorage.getItem(key);
-      } catch (e) {
-        return sessionMemoryStorage[key] || null;
-      }
-    }
-    return sessionMemoryStorage[key] || null;
-  },
-  setItem: (key: string, value: string): void => {
-    if (storageAvailable.session) {
-      try {
-        sessionStorage.setItem(key, value);
-      } catch (e) {
-        sessionMemoryStorage[key] = value;
-      }
-    } else {
-      sessionMemoryStorage[key] = value;
-    }
-  },
-  removeItem: (key: string): void => {
-    if (storageAvailable.session) {
-      try {
-        sessionStorage.removeItem(key);
-      } catch (e) {
-        delete sessionMemoryStorage[key];
-      }
-    } else {
-      delete sessionMemoryStorage[key];
-    }
-  },
-  clear: (): void => {
-    if (storageAvailable.session) {
-      try {
-        sessionStorage.clear();
-      } catch (e) {
-        for (const key in sessionMemoryStorage) {
-          delete sessionMemoryStorage[key];
+      return memory.get(key) ?? null;
+    },
+    setItem(key: string, value: string): void {
+      memory.set(key, value);
+      if (available) {
+        try {
+          window[type].setItem(key, value);
+        } catch {
+          available = false;
         }
       }
-    } else {
-      for (const key in sessionMemoryStorage) {
-        delete sessionMemoryStorage[key];
+    },
+    removeItem(key: string): void {
+      memory.delete(key);
+      if (available) {
+        try {
+          window[type].removeItem(key);
+        } catch {
+          available = false;
+        }
       }
-    }
-  }
-};
+    },
+    clear(): void {
+      memory.clear();
+      if (available) {
+        try {
+          window[type].clear();
+        } catch {
+          available = false;
+        }
+      }
+    },
+  };
+}
+export const safeLocalStorage = createSafeStorage("localStorage");
+export const safeSessionStorage = createSafeStorage("sessionStorage");

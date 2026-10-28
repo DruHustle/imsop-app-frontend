@@ -41,6 +41,8 @@ export function Forecasts() {
     [notice, setNotice] = useState(""),
     [horizon, setHorizon] = useState("7"),
     [observations, setObservations] = useState("");
+  const [runId, setRunId] = useState(""),
+    [predictionPage, setPredictionPage] = useState(0);
   const load = async (signal?: AbortSignal) =>
     setStatus(
       schema.parse(
@@ -82,7 +84,11 @@ export function Forecasts() {
       setBusy(false);
     }
   };
-  const latest = status?.runs[0];
+  const latest = status?.runs.find(run => run.id === runId) ?? status?.runs[0];
+  const page = Math.min(
+    predictionPage,
+    Math.max(0, Math.ceil((latest?.response.predictions.length ?? 0) / 100) - 1)
+  );
   return (
     <Panel
       title="Forecast evidence"
@@ -176,6 +182,22 @@ export function Forecasts() {
       )}
       {latest && (
         <section className="mt-3">
+          <label className="field mb-3">
+            Forecast run
+            <select
+              value={latest.id}
+              onChange={e => {
+                setRunId(e.target.value);
+                setPredictionPage(0);
+              }}
+            >
+              {status?.runs.map(run => (
+                <option key={run.id} value={run.id}>
+                  {run.provider} · {run.createdAt}
+                </option>
+              ))}
+            </select>
+          </label>
           <p className="muted text-xs">
             {latest.provider} · {latest.response.modelVersion} · Generated{" "}
             {latest.response.generatedAt} · Source snapshot{" "}
@@ -192,19 +214,45 @@ export function Forecasts() {
                 </tr>
               </thead>
               <tbody>
-                {latest.response.predictions.slice(0, 100).map(row => (
-                  <tr key={row.sku + row.date}>
-                    <td>{row.sku}</td>
-                    <td>{row.date}</td>
-                    <td>{row.quantity}</td>
-                    <td>{row.unit}</td>
-                  </tr>
-                ))}
+                {latest.response.predictions
+                  .slice(page * 100, (page + 1) * 100)
+                  .map(row => (
+                    <tr key={row.sku + row.date}>
+                      <td>{row.sku}</td>
+                      <td>{row.date}</td>
+                      <td>{row.quantity}</td>
+                      <td>{row.unit}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
           {latest.response.predictions.length > 100 && (
-            <p>Showing the first 100 predictions.</p>
+            <nav className="pagination" aria-label="Forecast prediction pages">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={page === 0}
+                onClick={() => setPredictionPage(page - 1)}
+              >
+                Previous predictions
+              </Button>
+              <span>
+                Page {page + 1} of{" "}
+                {Math.ceil(latest.response.predictions.length / 100)} ·{" "}
+                {latest.response.predictions.length} predictions
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={
+                  (page + 1) * 100 >= latest.response.predictions.length
+                }
+                onClick={() => setPredictionPage(page + 1)}
+              >
+                Next predictions
+              </Button>
+            </nav>
           )}
           {latest.response.limitations.map((text, i) => (
             <p className="muted text-xs" key={i}>

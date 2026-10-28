@@ -2,6 +2,10 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/version",
+      "destination": "https://imsop-api.152-70-22-84.sslip.io/version"
+    },
+    {
       "source": "/supply-chain/:path*",
       "destination": "https://imsop-api.152-70-22-84.sslip.io/supply-chain/:path*"
     },
@@ -39,6 +43,14 @@
     }
   ],
   "headers": [
+    {
+      "source": "/version",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "source": "/release.json",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
     {
       "source": "/supply-chain/:path*",
       "headers": [
