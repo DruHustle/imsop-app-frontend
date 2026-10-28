@@ -1,5 +1,5 @@
 # ========================================
-# Smart Factory IoT Backend - CI/CD Pipeline
+# IMSOP Frontend - CI/CD Pipeline
 # ========================================
 # This workflow automates the following:
 # 1. Continuous Integration (CI):
@@ -82,9 +82,13 @@ jobs:
   # ----------------------------------------
   # Job 2: Vercel Deploy
   # ----------------------------------------
+  qualify-system:
+    name: Qualify paired operational workflows
+    uses: ./.github/workflows/system-qualification.yml
+
   vercel-deploy:
     name: Vercel Deploy
-    needs: build-and-test
+    needs: [build-and-test, qualify-system]
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
 
