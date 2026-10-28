@@ -1,7 +1,7 @@
 {
   "name": "imsop-app",
   "version": "1.0.0",
-  "homepage": "https://druhustle.github.io/imsop-app-frontend/",
+  "homepage": "https://imsop-app.vercel.app/",
   "type": "module",
   "license": "MIT",
   "scripts": {
@@ -9,8 +9,7 @@
     "build": "vite build && pnpm verify:deployment",
     "start": "vite preview --host 0.0.0.0 --port $PORT",
     "test": "vitest run && node --test scripts/verify-deployment.test.mjs scripts/verify-live-release.test.mjs",
-    "predeploy": "pnpm build",
-    "deploy": "gh-pages -d dist",
+    "deploy": "bash deploy.sh",
     "preview": "vite preview --host",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
@@ -82,7 +81,6 @@
     "@types/react-dom": "^19.2.1",
     "@vitejs/plugin-react": "^5.0.4",
     "autoprefixer": "^10.4.21",
-    "gh-pages": "^6.3.0",
     "jsdom": "^27.4.0",
     "pnpm": "^10.18.1",
     "postcss": "^8.5.6",

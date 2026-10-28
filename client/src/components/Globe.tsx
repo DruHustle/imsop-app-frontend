@@ -22,6 +22,35 @@ export default function Globe({
       "Drag to orbit · Scroll or use controls to zoom"
     );
   const latest = useRef({ assets, selectedId, onSelect });
+  const [orbiting, setOrbiting] = useState(false),
+    [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    const preference = matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => {
+      setReducedMotion(preference.matches);
+      if (preference.matches) setOrbiting(false);
+    };
+    update();
+    preference.addEventListener("change", update);
+    return () => preference.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    if (!orbiting || reducedMotion) return;
+    let frame = 0,
+      previous = performance.now();
+    const tick = (now: number) => {
+      if (!document.hidden) {
+        view.current.yaw =
+          (view.current.yaw + Math.min(now - previous, 50) * 0.00015) %
+          (2 * Math.PI);
+        draw.current();
+      }
+      previous = now;
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [orbiting, reducedMotion]);
   latest.current = { assets, selectedId, onSelect };
   useEffect(() => {
     const element = canvas.current;
@@ -68,7 +97,13 @@ export default function Globe({
     gl.enableVertexAttribArray(attribute);
     const uniform = (name: string, value: number) =>
       gl.uniform1f(gl.getUniformLocation(program, name), value);
+    const colors = new Map<string, number[]>();
     const color = (value: string) => {
+      const cached = colors.get(value);
+      if (cached) {
+        gl.uniform3fv(gl.getUniformLocation(program, "color"), cached);
+        return;
+      }
       const span = document.createElement("span");
       span.style.color = value;
       span.style.display = "none";
@@ -77,6 +112,10 @@ export default function Globe({
         .color.match(/[\d.]+/g)
         ?.map(Number) ?? [100, 130, 150];
       span.remove();
+      colors.set(
+        value,
+        values.slice(0, 3).map(v => v / 255)
+      );
       gl.uniform3fv(
         gl.getUniformLocation(program, "color"),
         values.slice(0, 3).map(v => v / 255)
@@ -131,8 +170,10 @@ export default function Globe({
       if (gl.isContextLost()) return;
       const box = element.getBoundingClientRect(),
         ratio = Math.min(devicePixelRatio || 1, 2);
-      element.width = Math.max(1, Math.round(box.width * ratio));
-      element.height = Math.max(1, Math.round(box.height * ratio));
+      const width = Math.max(1, Math.round(box.width * ratio)),
+        height = Math.max(1, Math.round(box.height * ratio));
+      if (element.width !== width) element.width = width;
+      if (element.height !== height) element.height = height;
       gl.viewport(0, 0, element.width, element.height);
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -196,7 +237,10 @@ export default function Globe({
     };
     const resize = new ResizeObserver(() => draw.current());
     resize.observe(element);
-    const theme = new MutationObserver(() => draw.current());
+    const theme = new MutationObserver(() => {
+      colors.clear();
+      draw.current();
+    });
     theme.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],
@@ -230,6 +274,7 @@ export default function Globe({
   const focused = assets.find(a => a.id === selectedId);
   useEffect(() => {
     if (focused) {
+      setOrbiting(false);
       view.current.yaw = (-focused.position.lng * Math.PI) / 180;
       view.current.pitch = Math.max(
         -1.35,
@@ -240,6 +285,7 @@ export default function Globe({
   }, [selectedId, focused?.position.lat, focused?.position.lng]);
   const drag = useRef<{ x: number; y: number; distance: number } | null>(null);
   const rotate = (x: number, y: number) => {
+    setOrbiting(false);
     view.current.yaw += x;
     view.current.pitch = Math.max(
       -1.35,
@@ -251,6 +297,7 @@ export default function Globe({
     );
   };
   const zoom = (delta: number) => {
+    setOrbiting(false);
     view.current.distance = Math.max(
       2.2,
       Math.min(6, view.current.distance + delta)
@@ -266,6 +313,7 @@ export default function Globe({
         aria-label={`Interactive 3D globe with ${assets.length} recorded shipment positions. Arrow keys orbit, plus/minus zoom. Use the record selector for keyboard selection.`}
         tabIndex={0}
         onPointerDown={event => {
+          setOrbiting(false);
           event.currentTarget.focus();
           event.currentTarget.setPointerCapture(event.pointerId);
           drag.current = { x: event.clientX, y: event.clientY, distance: 0 };
@@ -330,6 +378,15 @@ export default function Globe({
         <Button
           size="sm"
           variant="outline"
+          aria-pressed={orbiting}
+          disabled={reducedMotion}
+          onClick={() => setOrbiting(v => !v)}
+        >
+          {orbiting ? "Pause view rotation" : "Rotate view"}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
           aria-label="Zoom globe in"
           onClick={() => zoom(-0.3)}
         >
@@ -347,6 +404,7 @@ export default function Globe({
           size="sm"
           variant="outline"
           onClick={() => {
+            setOrbiting(false);
             view.current = { yaw: 0, pitch: 0.16, distance: 3.2 };
             draw.current();
           }}
@@ -354,6 +412,11 @@ export default function Globe({
           Reset globe
         </Button>
       </div>
+      <p className="muted text-xs">
+        {reducedMotion
+          ? "Device motion reduction is enabled. Use the manual view controls."
+          : "View rotation changes the camera only. Recorded positions stay fixed; no shipment movement is predicted."}
+      </p>
       <p className="muted text-xs" aria-live="polite">
         {orientation}
       </p>
