@@ -6,10 +6,8 @@ const TOKEN_KEY = "imsop_token",
   USER_KEY = "imsop_user";
 export { resolveApiOrigin as resolveAuthOrigin } from "./api-origin";
 const API_BASE = API_ORIGIN;
-const getStorage = () =>
-  safeLocalStorage.getItem("__storage_test__") === null && !window.localStorage
-    ? safeSessionStorage
-    : safeLocalStorage;
+// The wrapper already provides a memory fallback when browser storage is blocked.
+const getStorage = () => safeLocalStorage;
 
 export class ApiAuthService implements IAuthService {
   private async fetchApi(path: string, opts: RequestInit = {}) {
@@ -36,6 +34,14 @@ export class ApiAuthService implements IAuthService {
           (await res.json().catch(() => ({}))).error || "API failed"
         );
       if (res.status === 204) return {};
+      if (
+        !(res.headers?.get("Content-Type") ?? "application/json").includes(
+          "application/json"
+        )
+      )
+        throw new Error(
+          "The server returned an unexpected response. Please retry."
+        );
       return await res.json();
     } catch (error) {
       if (controller.signal.aborted)

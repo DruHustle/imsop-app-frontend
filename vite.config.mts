@@ -2,6 +2,19 @@ import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { execFileSync } from "node:child_process";
+function sourceRevision() {
+  const configured =
+    process.env.VERCEL_GIT_COMMIT_SHA || process.env.GITHUB_SHA;
+  if (/^[a-f0-9]{40}$/.test(configured || "")) return configured!;
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], {
+      encoding: "utf8",
+    }).trim();
+  } catch {
+    return "unknown";
+  }
+}
 
 const basePath = process.env.VITE_BASE_PATH || "/imsop-app-frontend/";
 
@@ -18,7 +31,25 @@ const isolatedProxy =
     : undefined;
 export default defineConfig({
   preview: { proxy: isolatedProxy },
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    {
+      name: "imsop-release-identity",
+      generateBundle() {
+        this.emitFile({
+          type: "asset",
+          fileName: "release.json",
+          source:
+            JSON.stringify({
+              frontendRevision: sourceRevision(),
+              apiContract: 2,
+              builtAt: new Date().toISOString(),
+            }) + "\n",
+        });
+      },
+    },
+  ],
   base: basePath,
   resolve: {
     alias: {

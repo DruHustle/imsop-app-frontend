@@ -1,5 +1,5 @@
 # ========================================
-# Smart Factory IoT Backend - CI/CD Pipeline
+# IMSOP Frontend - CI/CD Pipeline
 # ========================================
 # This workflow automates the following:
 # 1. Continuous Integration (CI):
@@ -18,9 +18,14 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: imsop-vercel-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # ----------------------------------------
@@ -77,10 +82,14 @@ jobs:
   # ----------------------------------------
   # Job 2: Vercel Deploy
   # ----------------------------------------
+  qualify-system:
+    name: Qualify paired operational workflows
+    uses: ./.github/workflows/system-qualification.yml
+
   vercel-deploy:
     name: Vercel Deploy
-    needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build-and-test, qualify-system]
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
 
     steps:
@@ -107,9 +116,15 @@ jobs:
           if [ -n "${{ secrets.VERCEL_TOKEN }}" ] && [ -n "${{ secrets.VERCEL_ORG_ID }}" ] && [ -n "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "Vercel credentials are missing. Skipping deployment."
+            echo "::error::Vercel credentials are missing; production deployment was not performed."
+            exit 1
           fi
+
+      - name: Verify the required backend release before publishing
+        run: |
+          backend_sha="$(git ls-remote https://github.com/DruHustle/imsop-app-backend.git refs/heads/main | cut -f1)"
+          node scripts/verify-live-release.mjs --api-only https://imsop-api.152-70-22-84.sslip.io "$backend_sha"
+          echo "IMSOP_BACKEND_REVISION=$backend_sha" >> "$GITHUB_ENV"
 
       - name: Pull Vercel Environment Information
         if: steps.vercel.outputs.enabled == 'true'
@@ -126,6 +141,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VITE_BASE_PATH: /
+          VERCEL_GIT_COMMIT_SHA: ${{ github.sha }}
         run: pnpm dlx vercel@latest build --prod --token="$VERCEL_TOKEN"
 
       - name: Deploy Project Artifacts to Vercel
@@ -135,3 +151,6 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: pnpm dlx vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      - name: Verify the published source and first-party API
+        run: node scripts/verify-live-release.mjs https://imsop-app.vercel.app "${{ github.sha }}" "$IMSOP_BACKEND_REVISION"

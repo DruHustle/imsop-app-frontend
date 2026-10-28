@@ -72,8 +72,10 @@ function Session() {
           ...shipments.items.map(s => s.trackingNumber),
           ...orders.items.map(o => o.orderNumber),
         ]);
-        let shipmentItems = [...shipments.items],
-          orderItems = [...orders.items];
+        // An exact lookup is authoritative even when it returns no match.
+        // Never retain a previously visible record after it leaves this scope.
+        let shipmentItems = tokens.length ? [] : [...shipments.items],
+          orderItems = tokens.length ? [] : [...orders.items];
         const item = params.get("item");
         if (item) {
           const match = /^(shipment|order):([1-9]\d*)$/.exec(item);
@@ -114,13 +116,17 @@ function Session() {
         }
         s = {
           ...shipments,
-          status: "ready",
+          status: tokens.length || item ? "ready" : shipments.status,
           items: Array.from(
             new Map(shipmentItems.map(i => [i.id, i])).values()
           ),
         };
         o = {
           ...orders,
+          status:
+            (tokens.length || item) && orders.status !== "forbidden"
+              ? "ready"
+              : orders.status,
           items: Array.from(new Map(orderItems.map(i => [i.id, i])).values()),
         };
       }

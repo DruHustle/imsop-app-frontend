@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { requestJSON } from "@/lib/requests";
+import { readPurchaseCatalog } from "@/lib/purchasing";
 const option = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -39,7 +40,9 @@ export function Purchasing() {
     products: z.infer<typeof product>[];
     warehouses: z.infer<typeof option>[];
     orders: Purchase[];
-  }>({ suppliers: [], products: [], warehouses: [], orders: [] });
+    total: number;
+  }>({ suppliers: [], products: [], warehouses: [], orders: [], total: 0 });
+  const [offset, setOffset] = useState(0);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
@@ -63,23 +66,32 @@ export function Purchasing() {
   const resetReceiptKey = () => {
     receiptKey.current = null;
   };
-  const load = async (signal?: AbortSignal) => {
-    const [s, p, w, o] = await Promise.all(
-      ["suppliers", "products", "warehouses", ""].map(path =>
-        requestJSON(
-          base + (path ? "/" + path : ""),
-          "GET",
-          undefined,
-          undefined,
-          signal
-        )
-      )
-    );
+  const load = async (signal?: AbortSignal, pageOffset = offset) => {
+    const [s, p, w, o] = await Promise.all([
+      readPurchaseCatalog(base + "/suppliers", option, signal),
+      readPurchaseCatalog(base + "/products", product, signal),
+      readPurchaseCatalog(base + "/warehouses", option, signal),
+      requestJSON(
+        base + `?offset=${pageOffset}`,
+        "GET",
+        undefined,
+        undefined,
+        signal
+      ),
+    ]);
+    const orders = z
+      .object({
+        items: z.array(purchase),
+        total: z.number().int().nonnegative(),
+      })
+      .parse(o);
+    if (signal?.aborted) return;
     setData({
       suppliers: z.array(option).parse(s),
       products: z.array(product).parse(p),
       warehouses: z.array(option).parse(w),
-      orders: z.object({ items: z.array(purchase) }).parse(o).items,
+      orders: orders.items,
+      total: orders.total,
     });
   };
   useEffect(() => {
@@ -94,7 +106,7 @@ export function Purchasing() {
         if (!c.signal.aborted) setBusy(false);
       });
     return () => c.abort();
-  }, [mode]);
+  }, [mode, offset]);
   if (mode !== "live")
     return (
       <details className="source-details">
@@ -144,7 +156,8 @@ export function Purchasing() {
         },
         orderKey.current
       );
-      await load();
+      await load(undefined, 0);
+      setOffset(0);
       resetOrderKey();
       setNumber("");
       setInputs([{ productId: "", quantity: "1", unitPrice: "" }]);
@@ -196,7 +209,7 @@ export function Purchasing() {
     >
       <p className="muted text-xs mb-3">
         Purchasing records are separate from the incoming operational orders
-        above. The newest 50 are shown.
+        above. Browse 50 records per page.
       </p>
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
@@ -239,6 +252,36 @@ export function Purchasing() {
           </article>
         ))}
       </div>
+      {data.total > 0 && (
+        <nav className="pagination" aria-label="Purchase order pages">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy || offset === 0}
+            onClick={() => {
+              setSelected(null);
+              setOffset(value => Math.max(0, value - 50));
+            }}
+          >
+            Previous purchases
+          </Button>
+          <span>
+            Page {Math.floor(offset / 50) + 1} of{" "}
+            {Math.max(1, Math.ceil(data.total / 50))} · {data.total} purchases
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy || offset + 50 >= data.total}
+            onClick={() => {
+              setSelected(null);
+              setOffset(value => value + 50);
+            }}
+          >
+            Next purchases
+          </Button>
+        </nav>
+      )}
       {editable && (
         <details className="source-details">
           <summary>Create purchase order</summary>

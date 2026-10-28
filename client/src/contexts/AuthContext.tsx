@@ -12,6 +12,7 @@ import { AuthServiceFactory } from "@/lib/auth-factory";
 import { apiAuthService } from "@/lib/api-auth";
 import { toast } from "sonner";
 import { safeLocalStorage, safeSessionStorage } from "@/lib/storage";
+import { publishAuthChange, subscribeAuthChanges } from "@/lib/auth-events";
 function clearSensitiveState(user?: User | null, logout = false) {
   for (const storage of [safeLocalStorage, safeSessionStorage]) {
     for (const key of ["imsop_notifications", "imsop_navigation_state"])
@@ -65,6 +66,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .then(r => {
         if (isMounted && r.success) setUser(r.user || null);
       })
+      .catch(() => {
+        if (isMounted) setUser(null);
+      })
       .finally(() => {
         if (isMounted) setIsLoading(false);
       });
@@ -72,6 +76,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isMounted = false;
     };
   }, [getSvc]);
+
+  useEffect(
+    () =>
+      subscribeAuthChanges(() => {
+        clearSensitiveState(user);
+        setUser(null);
+        if (user)
+          toast.info(
+            "Your session changed in another tab. Sign in again to continue."
+          );
+      }),
+    [user]
+  );
 
   useEffect(() => {
     const expire = () => {
@@ -114,6 +131,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             e,
             p
           );
+          if (result.success) publishAuthChange();
           if (mode === "live" && result.success && result.user)
             safeLocalStorage.setItem(
               `imsop:mode:${result.user.id}:${result.user.email}:account`,
@@ -125,6 +143,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const service = getSvc();
         clearSensitiveState(user, true);
         setUser(null);
+        publishAuthChange();
         try {
           await service.logout();
         } catch {
@@ -134,12 +153,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       },
       register: (e: string, p: string, n: string) =>
-        handleAuthAction(() => getSvc(e).register(e, p, n)),
+        handleAuthAction(async () => {
+          const result = await getSvc(e).register(e, p, n);
+          if (result.success) publishAuthChange();
+          return result;
+        }),
       requestPasswordReset: (e: string) =>
         apiAuthService.requestPasswordReset(e),
       resetPassword: async (t: string, p: string) => {
         const result = await apiAuthService.resetPassword(t, p);
         if (result.success) {
+          publishAuthChange();
           clearSensitiveState(user, true);
           safeLocalStorage.removeItem("imsop_token");
           setUser(null);
@@ -162,6 +186,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const service = getSvc(),
           result = await service.changePassword(user.id, c, n);
         if (result.success && service === apiAuthService) {
+          publishAuthChange();
           clearSensitiveState(user, true);
           setUser(null);
           toast.info("Password changed. Sign in again.");

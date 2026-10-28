@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { requestJSON } from "@/lib/requests";
 import { Link } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { readSource } from "@/contexts/DataContext";
@@ -34,16 +35,23 @@ export function OperationalReview() {
         occurredAt: string;
       }[]
     >([]);
+  const historyRequest = useRef<AbortController | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [offset, setOffset] = useState(0),
+    [state, setState] = useState(""),
+    [total, setTotal] = useState(0);
+  useEffect(() => () => historyRequest.current?.abort(), []);
   const load = useCallback(async () => {
     setLoading(true);
     const c = new AbortController(),
       t = setTimeout(() => c.abort(), 10000);
     try {
       const data = await readSource(
-        "/api/operations/reviews?limit=100",
+        `/api/operations/reviews?limit=100&offset=${offset}${state ? "&state=" + state : ""}`,
         c.signal
       );
       setItems(data.items);
+      setTotal(data.total ?? data.items.length);
       if (editable)
         setOperators(
           (await readSource("/api/operations/reviews/operators", c.signal))
@@ -56,22 +64,32 @@ export function OperationalReview() {
       clearTimeout(t);
       setLoading(false);
     }
-  }, [editable]);
+  }, [editable, offset, state]);
   useEffect(() => {
     void load();
   }, [load]);
   const inspect = async (item: Review) => {
+    historyRequest.current?.abort();
+    const c = new AbortController();
+    historyRequest.current = c;
     setSelected(item);
     setNote("");
+    setHistory([]);
+    setHistoryLoading(true);
+    setError("");
     try {
-      const c = new AbortController();
-      const data = await readSource(
+      const data = await requestJSON(
         `/api/operations/reviews/${item.id}/actions`,
+        "GET",
+        undefined,
+        undefined,
         c.signal
       );
-      setHistory(data.items);
+      if (!c.signal.aborted) setHistory(data.items);
     } catch (e) {
-      setError("Case history could not be read.");
+      if (!c.signal.aborted) setError("Case history could not be read.");
+    } finally {
+      if (historyRequest.current === c) setHistoryLoading(false);
     }
   };
   const act = async (action: string, assigneeId?: number | null) => {
@@ -129,6 +147,24 @@ export function OperationalReview() {
         </Button>
       }
     >
+      <label className="field mb-3">
+        Case state
+        <select
+          value={state}
+          disabled={loading}
+          onChange={e => {
+            setState(e.target.value);
+            setOffset(0);
+            setSelected(null);
+            historyRequest.current?.abort();
+          }}
+        >
+          <option value="">All cases</option>
+          <option value="open">Open</option>
+          <option value="acknowledged">Acknowledged</option>
+          <option value="resolved">Resolved</option>
+        </select>
+      </label>
       <div className="review-workbench">
         <div className="review-queue">
           {error && (
@@ -180,6 +216,7 @@ export function OperationalReview() {
             aria-label={`Review ${selected.trackingNumber}`}
           >
             <h3>{selected.trackingNumber} · Case history</h3>
+            {historyLoading && <p role="status">Loading case history…</p>}
             {history.map(h => (
               <p key={h.id} className="text-sm">
                 {h.action} · {h.actorName} · {formatTime(h.occurredAt)}
@@ -246,7 +283,14 @@ export function OperationalReview() {
                 </div>
               </>
             )}
-            <Button variant="ghost" onClick={() => setSelected(null)}>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                historyRequest.current?.abort();
+                setSelected(null);
+                setHistory([]);
+              }}
+            >
               Close case
             </Button>
           </section>
@@ -260,6 +304,38 @@ export function OperationalReview() {
           </div>
         )}
       </div>
+      {total > 100 && (
+        <nav className="pagination" aria-label="Review case pages">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={loading || offset === 0}
+            onClick={() => {
+              setSelected(null);
+              historyRequest.current?.abort();
+              setOffset(value => Math.max(0, value - 100));
+            }}
+          >
+            Previous cases
+          </Button>
+          <span>
+            Page {Math.floor(offset / 100) + 1} of {Math.ceil(total / 100)} ·{" "}
+            {total} cases
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={loading || offset + 100 >= total}
+            onClick={() => {
+              setSelected(null);
+              historyRequest.current?.abort();
+              setOffset(value => value + 100);
+            }}
+          >
+            Next cases
+          </Button>
+        </nav>
+      )}
     </Panel>
   );
 }
@@ -296,11 +372,7 @@ export function LiveNotifications() {
   }, [load]);
   const mark = async (id: number) => {
     try {
-      const res = await fetch(
-        `${API_ORIGIN}/api/operations/notifications/${id}/read`,
-        { method: "POST", credentials: "include" }
-      );
-      if (!res.ok) throw new Error();
+      await requestJSON(`/api/operations/notifications/${id}/read`, "POST");
       await load();
     } catch {
       setError("Read state could not be saved. Retry.");
