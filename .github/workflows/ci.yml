@@ -76,6 +76,14 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify the required backend before publishing Pages
+        run: |
+          backend_sha="$(git ls-remote https://github.com/DruHustle/imsop-app-backend.git refs/heads/main | cut -f1)"
+          node scripts/verify-live-release.mjs --api-only https://imsop-api.152-70-22-84.sslip.io "$backend_sha"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

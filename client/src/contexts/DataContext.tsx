@@ -6,6 +6,7 @@ import {
   useState,
   ReactNode,
   useCallback,
+  useRef,
 } from "react";
 import { useAuth } from "./AuthContext";
 import { safeLocalStorage } from "@/lib/storage";
@@ -114,14 +115,35 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
       if (dates.from) result.set("from", dates.from);
       if (dates.to) result.set("to", dates.to);
     }
-    return (onOverview() ? "overview:" : "") + result.toString();
+    const path = window.location.hash.split("?")[0];
+    const context = onOverview()
+      ? "overview"
+      : path.startsWith("#/supply-chain/orders")
+        ? "orders"
+        : path.startsWith("#/supply-chain/shipments") ||
+            path.startsWith("#/insights/analytics")
+          ? "shipments"
+          : "workspace";
+    return context + ":" + result.toString();
   };
   const [selection, setSelection] = useState(selectedFilters);
+  const selectionRef = useRef(selection);
+  const activeRead = useRef<AbortController | null>(null);
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     const change = () => {
+      const next = selectedFilters();
+      if (selectionRef.current === next) return;
+      selectionRef.current = next;
       clearTimeout(timer);
-      timer = setTimeout(() => setSelection(selectedFilters()), 250);
+      activeRead.current?.abort("filters-changed");
+      setShipments(loading());
+      setOrders(loading());
+      setLastShipmentReadAt(null);
+      timer = setTimeout(() => {
+        setSelection(next);
+        setVersion(v => v + 1);
+      }, 250);
     };
     window.addEventListener("hashchange", change);
     return () => {
@@ -141,6 +163,7 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
   };
   useEffect(() => {
     const controller = new AbortController();
+    activeRead.current = controller;
     const timeout = setTimeout(() => controller.abort(), 12000);
     setShipments(loading());
     setOrders(loading());
@@ -230,7 +253,11 @@ function ScopedDataProvider({ children }: { children: ReactNode }) {
           if (kind === "shipments") setLastShipmentReadAt(readAt);
         }
       } catch (e) {
-        if (controller.signal.aborted && disposed) return;
+        if (
+          controller.signal.aborted &&
+          (disposed || controller.signal.reason === "filters-changed")
+        )
+          return;
         set({
           status:
             e instanceof ReadError && e.status === 403

@@ -253,3 +253,28 @@ test("a malformed persisted demo session returns to sign-in", async ({
     page.getByRole("heading", { name: "Welcome to IMSOP" })
   ).toBeVisible();
 });
+
+test("moving between shipment and order filters with the same query reloads the correct source", async ({
+  page,
+}) => {
+  await liveSession(page);
+  const reads: URL[] = [];
+  await page.route("**/api/operations/orders?**", route => {
+    reads.push(new URL(route.request().url()));
+    return route.fulfill({ json: { items: [liveOrder], total: 1 } });
+  });
+  await page.goto("/#/supply-chain/shipments?q=101");
+  await expect.poll(() => reads.length).toBeGreaterThan(0);
+  const initial = reads.length;
+  await page.evaluate(() => {
+    window.location.hash = "/supply-chain/orders?q=101";
+  });
+  await expect
+    .poll(() =>
+      reads.slice(initial).some(url => url.searchParams.get("q") === "101")
+    )
+    .toBe(true);
+  await expect(
+    page.getByText("1 matching operational orders", { exact: true })
+  ).toBeVisible();
+});

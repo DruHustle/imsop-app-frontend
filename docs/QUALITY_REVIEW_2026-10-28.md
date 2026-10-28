@@ -1,0 +1,15 @@
+# IMSOP quality review — 28 October 2026
+
+The full cross-repository findings, feature coverage, security fixes and operational prerequisites are in the [backend review](https://github.com/DruHustle/imsop-app-backend/blob/main/docs/QUALITY_REVIEW_2026-10-28.md). Reviewable changes and CI evidence: [frontend #11](https://github.com/DruHustle/imsop-app-frontend/pull/11), [backend #6](https://github.com/DruHustle/imsop-app-backend/pull/6).
+
+Frontend corrections include source-level order filters and customer search, exact Assistant refresh without cached fallback, truthful source failures, complete bounded purchasing catalogs and purchase pages, review-history cancellation and review queue pages, forecast prediction pages/recent runs, consistent storage fallback, corrupt-session recovery and cross-tab identity clearing. Existing IMSOP colors, dark backgrounds and Light/Dark/System behavior are preserved.
+
+Production build output includes `/release.json`. `/version` is forwarded to the backend before the SPA fallback. Deployment verification rejects HTML fallbacks, missing/incorrect source revisions, missing purchasing capabilities, unready dependencies and anonymous access to operational or purchasing data.
+
+Vercel production publication is owned by `.github/workflows/cicd-pipeline.yml`; automatic Git production deployment on main is disabled so it cannot bypass qualification. Branch previews remain available. The secondary Pages publication also checks backend compatibility. Missing deployment credentials now fail explicitly. The workflow accepts manual dispatch after the Oracle release is installed, as well as a qualified push to main.
+
+The supported release order is backend first, frontend second. The frontend workflow resolves backend main, requires the installed Oracle `/version` to match that exact revision and capabilities, then builds/deploys and verifies the frontend SHA plus first-party API again. It must not publish the new purchase catalog client against the old runtime.
+
+Initial production observations found frontend and health/readiness reachable and anonymous operational reads rejected, but the Oracle `/version` returned 404. No authenticated Oracle deployment connection is available in this session. Availability is not an all-feature release receipt. Preserve legacy ownership quarantine, production IDs, existing secrets, the Oracle host and sibling application isolation.
+
+Local types, unit/component checks, deployment checks, build and production dependency audit pass. Browser and actual PostgreSQL/.NET release qualification are verified in GitHub; local native-process launch failures are not counted as test passes. The linked pull-request and main workflow checks are the final release evidence.

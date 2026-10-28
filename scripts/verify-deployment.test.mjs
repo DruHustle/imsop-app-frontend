@@ -71,3 +71,35 @@ test("purchasing keeps first-party cookie requests out of the SPA fallback", asy
     )
   );
 });
+
+test("production publishing uses the qualified CI path and exposes source identities", async () => {
+  const config = JSON.parse(
+    await readFile(new URL("../vercel.json", import.meta.url), "utf8")
+  );
+  assert.equal(
+    config.git.deploymentEnabled.main,
+    false,
+    "Git auto-publishing must not bypass the backend compatibility gate"
+  );
+  const version = config.rewrites.findIndex(
+    route => route.source === "/version"
+  );
+  const spa = config.rewrites.findIndex(
+    route => route.destination === "/index.html"
+  );
+  assert(version >= 0 && version < spa);
+  assert.equal(
+    config.rewrites[version].destination,
+    "https://imsop-api.152-70-22-84.sslip.io/version"
+  );
+  assert(
+    config.headers.some(
+      route =>
+        route.source === "/release.json" &&
+        route.headers.some(
+          header =>
+            header.key === "Cache-Control" && header.value === "no-store"
+        )
+    )
+  );
+});

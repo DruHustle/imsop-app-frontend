@@ -16,6 +16,7 @@ async function json(origin, path) {
   return response.json();
 }
 export async function verifyApiRelease(origin, expected) {
+  assert(revision.test(expected || ""), "An exact backend revision is required");
   const version = await json(origin, "/version");
   assert(
     revision.test(version.revision || ""),
@@ -80,7 +81,7 @@ if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
-  const [first, second, third, fourth] = process.argv.slice(2);
+  const [first, second, third] = process.argv.slice(2);
   try {
     const result =
       first === "--api-only"

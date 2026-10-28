@@ -85,6 +85,7 @@ export function Purchasing() {
         total: z.number().int().nonnegative(),
       })
       .parse(o);
+    if (signal?.aborted) return;
     setData({
       suppliers: z.array(option).parse(s),
       products: z.array(product).parse(p),
