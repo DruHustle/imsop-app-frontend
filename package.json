@@ -8,7 +8,7 @@
     "dev": "vite --host",
     "build": "vite build && pnpm verify:deployment",
     "start": "vite preview --host 0.0.0.0 --port $PORT",
-    "test": "vitest run && node --test scripts/verify-deployment.test.mjs scripts/verify-live-release.test.mjs",
+    "test": "vitest run && node --test scripts/verify-deployment.test.mjs scripts/verify-live-release.test.mjs scripts/prepare-deployment.test.mjs",
     "deploy": "bash deploy.sh",
     "preview": "vite preview --host",
     "e2e": "playwright test",
